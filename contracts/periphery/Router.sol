@@ -3,7 +3,9 @@ pragma solidity=0.8.17;
 
 import './interfaces/IRouter.sol';
 import '../core/interfaces/IFactory.sol';
+import '../core/interfaces/IUniswapV2Pair.sol';
 import './libraries/DEXLibrary.sol';
+import './libraries/TransferHelper.sol';
 
 import 'hardhat/console.sol';
 
@@ -26,29 +28,24 @@ contract Router is IRouter {
             IFactory(factoryAddr).createTradingPair(tokenA, tokenB);
         }
         (uint reserveA, uint reserveB) = DEXLibrary.getReserves(factoryAddr, tokenA, tokenB);
+        
+        console.log('------- reserveA is -------', reserveA);
+        console.log('------- reserveB is -------', reserveB);
+
         if(reserveA == 0 && reserveB == 0) {
             (amountA, amountB) = (amountADesired, amountBDesired);
         } else {
             uint amountBOptimal = DEXLibrary.quote(amountADesired, reserveA, reserveB);
-            console.log('------- amountBOptimal is -------', amountBOptimal);
             if(amountBOptimal <= amountBDesired) {
                 require(amountBOptimal >= amountBMin, 'DEXLibrary: INSUFFICIENT_B_AMOUNT');
+                (amountA, amountB) = (amountADesired, amountBOptimal);
             } else {
-
+                uint amountAOptimal = DEXLibrary.quote(amountBDesired, reserveB, reserveA);
+                assert(amountAOptimal <= amountADesired);
+                require(amountAOptimal >= amountAMin, 'DEXLibrary: INSUFFICIENT_A_AMOUNT');
+                (amountA, amountB) = (amountAOptimal, amountBDesired);
             }
         }
-        console.log('------- reserveA is -------', reserveA);
-        console.log('------- reserveB is -------', reserveB);
-
-        console.log('------- amountA is -------', amountA);
-        console.log('------- amountB is -------', amountB);
-
-        console.log('------- amountADesired is -------', amountADesired);
-        console.log('------- amountBDesired is -------', amountBDesired);
-
-        /* 
-        
-        */
     }
 
     function depositLiquidity(
@@ -57,8 +54,10 @@ contract Router is IRouter {
         uint amountADesired,
         uint amountBDesired,
         uint amountAMin,
-        uint amountBMin
-    ) external returns(uint amountA, uint amountB){
+        uint amountBMin,
+        address to,
+        uint deadline
+    ) external returns(uint amountA, uint amountB, uint liquidity){
         (amountA, amountB) = _depositLiquidity(
             tokenA,
             tokenB,
@@ -67,5 +66,10 @@ contract Router is IRouter {
             amountAMin,
             amountBMin
         );
+
+        address pair = DEXLibrary.pairFor(factoryAddr, tokenA, tokenB);
+        TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
+        TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
+        liquidity = IUniswapV2Pair(pair).mint(to);
     }
 }

@@ -8,6 +8,8 @@ interface IRouter {
         uint amountADesired,
         uint amountBDesired,
         uint amountAMin,
-        uint amountBMin
-    ) external returns (uint amountA, uint amountB);
+        uint amountBMin,
+        address to,
+        uint deadline
+    ) external returns (uint amountA, uint amountB, uint liquidity);
 }

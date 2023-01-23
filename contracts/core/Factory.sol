@@ -12,6 +12,8 @@ contract Factory is IFactory {
     mapping(address => mapping(address => address)) public getTradingPair;
     address[] public allTradingPairs;
 
+    event TradingPairCreated(address indexed token0, address indexed token1, address pair, uint);
+
     constructor(address _feeToSetter) {
         feeToSetter = _feeToSetter;
     }
@@ -23,17 +25,19 @@ contract Factory is IFactory {
         require(getTradingPair[tokenA][tokenB] == address(0), 'DEX: TRADING_PAIR_EXISTS');
 
         bytes32 salt = keccak256(abi.encode(token0, token1));
-        bytes memory bytecode = type(TradingPairExchange).creationCode;
+        // bytes memory bytecode = type(TradingPairExchange).creationCode;
 
-        assembly {
-            pair := create2(
-                callvalue(), // wei sent with current call
-                add(bytecode, 0x20),
-                mload(bytecode),
-                salt
-            )
-        }
-           
+        // assembly {
+        //     pair := create2(
+        //         callvalue(), // wei sent with current call
+        //         add(bytecode, 0x20),
+        //         mload(bytecode),
+        //         salt
+        //     )
+        // }
+        TradingPairExchange d = new TradingPairExchange{salt: salt}(); 
+        pair = address(d);
+
         ITradingPairExchange(pair).initialize(tokenA, tokenB);
         getTradingPair[tokenA][tokenB] = pair;
         getTradingPair[tokenB][tokenA] = pair;

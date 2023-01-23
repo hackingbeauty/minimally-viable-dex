@@ -14,11 +14,10 @@ module.exports = {
     hardhat: {
       chainId: 1337 // We set 1337 to make interacting with MetaMask simpler
     }
+  },
+  gasReporter: {
+    enabled: (process.env.REPORT_GAS) ? true : false,
+    currency: "USD",
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY
   }
-  // },
-  // gasReporter: {
-  //   enabled: (process.env.REPORT_GAS) ? true : false,
-  //   currency: "USD",
-  //   coinmarketcap: process.env.COINMARKETCAP_API_KEY
-  // }
 };

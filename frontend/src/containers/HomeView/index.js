@@ -21,6 +21,7 @@ class HomeView extends Component {
       <div className={styles}>
         <div className="container">
           <FormattedMessage id="view.home.heading" />
+          <TextInput label="Enter Name" />
         </div>
       </div>
     )
