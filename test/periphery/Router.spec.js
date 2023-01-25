@@ -2,6 +2,8 @@ const { expect } = require("chai");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { ethers } = require("hardhat");
 
+
+
 describe("Router contract", ()=> {
     async function deployRouterFixture() {
         /* AAVE/DAI, 1 AAVE = $56 USD, 1 DAI = $1 USD */
@@ -13,15 +15,24 @@ describe("Router contract", ()=> {
         const amountAMin = ethers.utils.parseUnits('.99', 18); //AAVE
         const amountBMin = ethers.utils.parseUnits('55.44', 18); //DAI
 
-        const [deployer] = await ethers.getSigners();
+        const [deployer, liquidityProvider] = await ethers.getSigners();
 
         const FactoryContract = await ethers.getContractFactory("Factory");
         const factory = await FactoryContract.deploy(deployer.address);
         const factoryObj = await factory.deployed();
+        const factoryAddr = factoryObj.address;
 
         const RouterContract = await ethers.getContractFactory("Router");
-        const router = await RouterContract.deploy(factoryObj.address);
+        const router = await RouterContract.deploy(factoryAddr);
         await router.deployed();
+
+        const AaveTokenContract = await ethers.getContractFactory("ERC20Basic");
+        const aaveToken = await AaveTokenContract.deploy("Aave Stablecoin", "AAVE", 18, deployer.address);
+        await aaveToken.deployed();
+
+        const DaiTokenContract = await ethers.getContractFactory("ERC20Basic");
+        const daiToken = await DaiTokenContract.deploy("Dai Stablecoin", "DAI", 18, deployer.address);
+        await daiToken.deployed();
 
         const TransferHelperLibrary = await ethers.getContractFactory("TransferHelper");
         const transferHelper = await TransferHelperLibrary.deploy();
@@ -35,7 +46,11 @@ describe("Router contract", ()=> {
             amountAMin,
             amountBMin,
             router,
-            transferHelper
+            transferHelper,
+            liquidityProvider,
+            deployer,
+            aaveToken,
+            daiToken
         }
     }
     describe("Deposit liquidity", () => {
@@ -77,9 +92,16 @@ describe("Router contract", ()=> {
                     amountAMin,
                     amountBMin,
                     router,
-                    transferHelper
+                    transferHelper,
+                    liquidityProvider,
+                    deployer,
+                    aaveToken,
+                    daiToken
                 } = await loadFixture(deployRouterFixture);
-                
+
+                // const pair = DEXLibrary.pairFor(factoryAddr, aaveToken.address, daiToken.address);
+
+
                 // approve transfer
                 // then do a safe transfer
                 // how do you get address of pool in question?
@@ -91,18 +113,25 @@ describe("Router contract", ()=> {
                 // transfer a certain amount of DAI and AAVE ERC20 tokens to "second account"
                 // then, programmatically approve the Router account to be able to transfer tokens on
                 // "second account's" behalf
-                // 
-                transferHelper.safeTransferFrom(aaveERC20Token, msg.sender, pair, amountADesired);
-                transferHelper.safeTransferFrom(daiERC20Token, msg.sender, pair, amountBDesired);
+                
+                /* Mint tokens for Liquidity Provider's account */
+                await aaveToken.connect(deployer).mint(liquidityProvider.address, "300000000000");
+                await daiToken.connect(deployer).mint(liquidityProvider.address, "9000000000000000000");
 
-                await router.depositLiquidity(
-                    aaveERC20Token,
-                    daiERC20Token,
-                    amountADesired,
-                    amountBDesired,
-                    amountAMin,
-                    amountBMin
-                );
+                /* Liquidity Provider approves Router to transfer tokens */
+                await aaveToken.connect(liquidityProvider).approve(router.address, 10000);
+                await daiToken.connect(liquidityProvider).approve(router.address, 10000);
+
+                // await transferHelper.safeTransferFrom(daiToken, liquidityProvider, pair, amountBDesired);
+
+                // await router.callStatic.depositLiquidity(
+                //     aaveERC20Token,
+                //     daiERC20Token,
+                //     amountADesired,
+                //     amountBDesired,
+                //     amountAMin,
+                //     amountBMin
+                // );
 
                 expect(true).to.equal(true);
             });
