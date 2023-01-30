@@ -7,13 +7,16 @@ import '../core/interfaces/IUniswapV2Pair.sol';
 import './libraries/DEXLibrary.sol';
 import './libraries/TransferHelper.sol';
 
-import 'hardhat/console.sol';
-
 contract Router is IRouter {
     address public immutable factoryAddr;
 
     constructor(address _factoryAddr) {
         factoryAddr = _factoryAddr;
+    }
+
+    modifier ensure(uint deadline) {
+        require(deadline >= block.timestamp, 'DEX: EXPIRED');
+        _;
     }
 
     function _depositLiquidity(
@@ -28,10 +31,6 @@ contract Router is IRouter {
             IFactory(factoryAddr).createTradingPair(tokenA, tokenB);
         }
         (uint reserveA, uint reserveB) = DEXLibrary.getReserves(factoryAddr, tokenA, tokenB);
-        
-        console.log('------- reserveA is -------', reserveA);
-        console.log('------- reserveB is -------', reserveB);
-
         if(reserveA == 0 && reserveB == 0) {
             (amountA, amountB) = (amountADesired, amountBDesired);
         } else {
@@ -57,7 +56,7 @@ contract Router is IRouter {
         uint amountBMin,
         address to,
         uint deadline
-    ) external returns(uint amountA, uint amountB, uint liquidity){
+    ) external ensure(deadline) returns(uint amountA, uint amountB, uint liquidity){
         (amountA, amountB) = _depositLiquidity(
             tokenA,
             tokenB,
@@ -66,7 +65,6 @@ contract Router is IRouter {
             amountAMin,
             amountBMin
         );
-
         address pair = DEXLibrary.pairFor(factoryAddr, tokenA, tokenB);
         TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
         TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);

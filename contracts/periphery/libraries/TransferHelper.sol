@@ -1,5 +1,7 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 pragma solidity=0.8.17;
+import 'hardhat/console.sol';
 
 library TransferHelper {
     function safeTransferFrom(
@@ -8,8 +10,8 @@ library TransferHelper {
         address to,
         uint256 value
     ) internal {
-        // bytes4(keccak256(bytes('transferFrom(address,address,uint256)')));
-        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x23b872dd, from, to, value));
+        bytes4 SELECTOR = bytes4(keccak256(bytes('transferFrom(address,address,uint256)')));
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(SELECTOR, from, to, value));
         require(
             success && (data.length == 0 || abi.decode(data, (bool))),
             'TransferHelper::transferFrom: transferFrom failed'

@@ -11,6 +11,14 @@ contract TradingPairExchange is ITradingPairExchange {
     uint112 private reserve0;
     uint112 private reserve1;
     uint32 private blockTimestampLast;
+    uint private unlocked = 1;
+    
+    modifier lock() {
+        require(unlocked == 1, 'UniswapV2: LOCKED');
+        unlocked = 0;
+        _;
+        unlocked = 1;
+    }
 
     constructor() {
         factoryAddr = msg.sender;
@@ -26,5 +34,9 @@ contract TradingPairExchange is ITradingPairExchange {
         _reserve0 = reserve0;
         _reserve1 = reserve1;
         _blockTimestampLast = blockTimestampLast;
+    }
+
+    function mint(address to) external lock returns (uint liquidity) {
+
     }
 }

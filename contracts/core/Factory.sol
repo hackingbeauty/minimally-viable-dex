@@ -4,6 +4,7 @@ pragma solidity=0.8.17;
 import './interfaces/IFactory.sol';
 import './interfaces/ITradingPairExchange.sol';
 import './TradingPairExchange.sol';
+import 'hardhat/console.sol';
 
 contract Factory is IFactory {
     address public feeTo;
@@ -25,16 +26,7 @@ contract Factory is IFactory {
         require(getTradingPair[tokenA][tokenB] == address(0), 'DEX: TRADING_PAIR_EXISTS');
 
         bytes32 salt = keccak256(abi.encode(token0, token1));
-        // bytes memory bytecode = type(TradingPairExchange).creationCode;
 
-        // assembly {
-        //     pair := create2(
-        //         callvalue(), // wei sent with current call
-        //         add(bytecode, 0x20),
-        //         mload(bytecode),
-        //         salt
-        //     )
-        // }
         TradingPairExchange d = new TradingPairExchange{salt: salt}(); 
         pair = address(d);
 
@@ -42,6 +34,6 @@ contract Factory is IFactory {
         getTradingPair[tokenA][tokenB] = pair;
         getTradingPair[tokenB][tokenA] = pair;
         allTradingPairs.push(pair);
-        emit TradingPairCreated(tokenA, tokenB);
+        emit TradingPairCreated(tokenA, tokenB, pair);
     }
 }
