@@ -2,6 +2,7 @@
 pragma solidity=0.8.17;
 
 import './interfaces/ITradingPairExchange.sol';
+import './interfaces/IERC20.sol';
 
 contract TradingPairExchange is ITradingPairExchange {
     address public factoryAddr;
@@ -13,6 +14,8 @@ contract TradingPairExchange is ITradingPairExchange {
     uint32 private blockTimestampLast;
     uint private unlocked = 1;
     
+    event Mint(address indexed sender, uint amount0, uint amount1);
+
     modifier lock() {
         require(unlocked == 1, 'UniswapV2: LOCKED');
         unlocked = 0;
@@ -30,13 +33,30 @@ contract TradingPairExchange is ITradingPairExchange {
         tokenB = _tokenB;
     }
 
-    function getReserves() external view returns (uint112 _reserve0, uint112 _reserve1, uint32 _blockTimestampLast) {
+    function getReserves() public view returns (uint112 _reserve0, uint112 _reserve1, uint32 _blockTimestampLast) {
         _reserve0 = reserve0;
         _reserve1 = reserve1;
         _blockTimestampLast = blockTimestampLast;
     }
 
-    function mint(address to) external lock returns (uint liquidity) {
+    function _update(uint balance0, uint balance1) private {
+        // require(balance0 <= uint112(-1) && balance1 <= uint112(-1), 'DEX: Overflow');
+        require(balance0 <= type(uint112).max && balance1 <= type(uint112).max, 'DEX: Overflow');
+        reserve0 = uint112(balance0);
+        reserve1 = uint112(balance1);
 
+        uint32 blockTimestamp = uint32(block.timestamp % 2**32);
+        blockTimestampLast = blockTimestamp;
+    }
+
+    function mint(address to) external lock returns (uint liquidity) {
+        (uint112 _reserve0, uint112 _reserve1,) = getReserves();
+        uint balance0 = IERC20(tokenA).balanceOf(address(this));
+        uint balance1 = IERC20(tokenB).balanceOf(address(this));
+        uint amount0 = balance0 - _reserve0;
+        uint amount1 = balance1 - _reserve1;
+        
+        _update(balance0, balance1);
+        emit Mint(msg.sender, amount0, amount1);
     }
 }
