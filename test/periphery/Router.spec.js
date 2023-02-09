@@ -18,6 +18,7 @@ describe("Router contract", ()=> {
         const RouterContract = await ethers.getContractFactory("Router");
         const deployedRouter = await RouterContract.deploy(factory.address);
         await deployedRouter.deployed();
+
         /* Connect router to signer */
         const router = await deployedRouter.connect(liquidityProvider);
 
@@ -39,32 +40,31 @@ describe("Router contract", ()=> {
         );
         await daiToken.deployed();
 
-        /* Transaction deadline of 20 minutes */
-        const currentTime = Math.floor(Date.now() / 1000); //divide by 1000 to get seconds
-        const deadline = currentTime + (20 * 60); //deadline is current time + 20 minutes
-
         /* Mint tokens for Liquidity Provider's account */
-        const mintAaveTx = await aaveToken.connect(deployer).mint(
+        await aaveToken.mint(
             liquidityProvider.address,
             ethers.utils.parseUnits('130', 18)
         );
 
-        const mintDaiTokenTx = await daiToken.connect(deployer).mint(
+        await daiToken.mint(
             liquidityProvider.address,
             ethers.utils.parseUnits('130', 18)
         );
 
         /* Liquidity Provider approves Router to transfer tokens */
-        const approveAaveTx = await aaveToken.connect(liquidityProvider).approve(
-            router.address,
-            ethers.utils.parseUnits('130', 18)
-
-        );
-
-        const approveDaiTx = await daiToken.connect(liquidityProvider).approve(
+        await aaveToken.connect(liquidityProvider).approve(
             router.address,
             ethers.utils.parseUnits('130', 18)
         );
+
+        await daiToken.connect(liquidityProvider).approve(
+            router.address,
+            ethers.utils.parseUnits('130', 18)
+        );
+
+        /* Transaction deadline of 20 minutes */
+        const currentTime = Math.floor(Date.now() / 1000); //divide by 1000 to get seconds
+        const deadline = currentTime + (20 * 60); //deadline is current time + 20 minutes
 
         return {
             aaveToken,
@@ -112,7 +112,7 @@ describe("Router contract", ()=> {
                 expect(formattedAmountA).to.equal(formattedAmountADesired);
                 expect(formattedAmountB).to.equal(formattedAmountBDesired);
             });
-            it("should deposit the optimal ratio of tokens for an existing pool", async() => {
+            it.only("should deposit the optimal ratio of tokens for an existing pool", async() => {
                 const { 
                     aaveToken,
                     daiToken,
@@ -136,21 +136,25 @@ describe("Router contract", ()=> {
                     deadline
                 );
 
+                /* Simulate error desposit here! */
                 const { amountA, amountB } = await router.callStatic.depositLiquidity(
                     aaveToken.address,
                     daiToken.address,
-                    amountADesired,
-                    amountBDesired,
+                    ethers.utils.parseUnits('10', 18), //AAVE simulate error deposit
+                    ethers.utils.parseUnits('56', 18), //DAI simulate error deposit
                     amountAMin,
                     amountBMin,
                     liquidityProvider.address,
                     deadline
                 );
 
-                console.log('----- amountA ------', amountA);
-                console.log('----- amountB ------', amountB);
+                const formattedAmountA = ethers.utils.formatUnits(amountA);
+                const formattedAmountB = ethers.utils.formatUnits(amountB);
+                const formattedAmountADesired = ethers.utils.formatUnits(amountADesired);
+                const formattedAmountBDesired = ethers.utils.formatUnits(amountBDesired);
 
-                expect(true).to.equal(true);
+                expect(formattedAmountA).to.equal(formattedAmountADesired);
+                expect(formattedAmountB).to.equal(formattedAmountBDesired);
             });
 
         });

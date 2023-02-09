@@ -3,7 +3,7 @@ pragma solidity=0.8.17;
 
 import './interfaces/IRouter.sol';
 import '../core/interfaces/IFactory.sol';
-import '../core/interfaces/IUniswapV2Pair.sol';
+import '../core/interfaces/ITradingPairExchange.sol';
 import './libraries/DEXLibrary.sol';
 import './libraries/TransferHelper.sol';
 import 'hardhat/console.sol';
@@ -28,10 +28,14 @@ contract Router is IRouter {
         uint amountAMin,
         uint amountBMin
     ) internal returns (uint amountA, uint amountB){
+        console.log('--- STEP 1 ---');
+
         if(IFactory(factoryAddr).getTradingPair(tokenA, tokenB) == address(0)){
+            console.log('--- STEP 2 ---');
             IFactory(factoryAddr).createTradingPair(tokenA, tokenB);
         }
         (uint reserveA, uint reserveB) = DEXLibrary.getReserves(factoryAddr, tokenA, tokenB);
+
         console.log('------ reserveA ------', reserveA);
         console.log('------ reserveB ------', reserveB);
 
@@ -39,10 +43,10 @@ contract Router is IRouter {
             (amountA, amountB) = (amountADesired, amountBDesired);
         } else {
             uint amountBOptimal = DEXLibrary.quote(amountADesired, reserveA, reserveB);
-            if(amountBOptimal <= amountBDesired) {
+            if(amountBOptimal <= amountBDesired) { //tokenB is worth MORE than LP thinks, so a smaller amount is required
                 require(amountBOptimal >= amountBMin, 'DEXLibrary: INSUFFICIENT_B_AMOUNT');
                 (amountA, amountB) = (amountADesired, amountBOptimal);
-            } else {
+            } else { //tokenB is worth LESS than LP thinks, so a higher amount is required
                 uint amountAOptimal = DEXLibrary.quote(amountBDesired, reserveB, reserveA);
                 assert(amountAOptimal <= amountADesired);
                 require(amountAOptimal >= amountAMin, 'DEXLibrary: INSUFFICIENT_A_AMOUNT');
@@ -72,6 +76,6 @@ contract Router is IRouter {
         address pair = DEXLibrary.pairFor(factoryAddr, tokenA, tokenB);
         TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
         TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
-        liquidity = IUniswapV2Pair(pair).mint(to);
+        liquidity = ITradingPairExchange(pair).mint(to);
     }
 }

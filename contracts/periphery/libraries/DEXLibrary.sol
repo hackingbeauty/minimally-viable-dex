@@ -4,6 +4,7 @@ pragma solidity=0.8.17;
 import '../../core/interfaces/ITradingPairExchange.sol';
 import '../../core/TradingPairExchange.sol';
 import '../../core/interfaces/IFactory.sol';
+import 'hardhat/console.sol';
 
 library DEXLibrary {
 
@@ -37,9 +38,17 @@ library DEXLibrary {
     }    
 
     // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
-    function quote(uint amountA, uint reserveA, uint reserveB) internal pure returns (uint amountB) {
+    function quote(uint amountA, uint reserveA, uint reserveB) internal view  returns (uint amountB) {
         require(amountA > 0, 'DEXLibrary: INSUFFICIENT_AMOUNT');
         require(reserveA > 0 && reserveB > 0, 'DEXLibrary: INSUFFICIENT LIQUIDITY');
         amountB = (amountA * reserveB)/reserveA;
+        
+        console.log('--------------------------');
+        console.log('---- amountA ----', amountA);
+        console.log('---- reserveB ----', reserveB);
+        console.log('---- reserveA ----', reserveA);
+        console.log('---- (amountA * reserveB) ----', amountA * reserveB);
+        console.log('---- amountB iz ----', amountB);
+        console.log('--------------------------');
     }
 }
