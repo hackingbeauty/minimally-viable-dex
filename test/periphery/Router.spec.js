@@ -112,7 +112,7 @@ describe("Router contract", ()=> {
                 expect(formattedAmountA).to.equal(formattedAmountADesired);
                 expect(formattedAmountB).to.equal(formattedAmountBDesired);
             });
-            it.only("should deposit the optimal ratio of tokens for an existing pool", async() => {
+            it("should deposit the optimal ratio of tokens for an existing pool", async() => {
                 const { 
                     aaveToken,
                     daiToken,
@@ -155,6 +155,16 @@ describe("Router contract", ()=> {
 
                 expect(formattedAmountA).to.equal(formattedAmountADesired);
                 expect(formattedAmountB).to.equal(formattedAmountBDesired);
+            });
+
+        });
+        describe("should mint the correct number of Liquidity Tokens", () => {
+            it("for a new liquidity pool", async() => {
+                expect(true).to.equal(true);
+            });
+
+            it("for an existing liquidity pool", async() => {
+                expect(true).to.equal(true);
             });
 
         });

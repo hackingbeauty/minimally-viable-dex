@@ -3,7 +3,6 @@ pragma solidity=0.8.17;
 
 import './interfaces/ITradingPairExchange.sol';
 import './interfaces/IERC20.sol';
-import 'hardhat/console.sol';
 
 contract TradingPairExchange is ITradingPairExchange {
     address public factoryAddr;
@@ -45,9 +44,6 @@ contract TradingPairExchange is ITradingPairExchange {
         require(balance0 <= type(uint112).max && balance1 <= type(uint112).max, 'DEX: Overflow');
         reserve0 = uint112(balance0);
         reserve1 = uint112(balance1);
-        console.log('--------------------');
-        console.log('balance0: ', balance0);
-        console.log('balance1: ', balance1);
         uint32 blockTimestamp = uint32(block.timestamp % 2**32);
         blockTimestampLast = blockTimestamp;
     }

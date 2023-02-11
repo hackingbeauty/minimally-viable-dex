@@ -4,7 +4,6 @@ pragma solidity=0.8.17;
 import './interfaces/IFactory.sol';
 import './interfaces/ITradingPairExchange.sol';
 import './TradingPairExchange.sol';
-import 'hardhat/console.sol';
 
 contract Factory is IFactory {
     address public feeTo;
@@ -27,13 +26,13 @@ contract Factory is IFactory {
 
         bytes32 salt = keccak256(abi.encode(token0, token1));
 
-        TradingPairExchange d = new TradingPairExchange{salt: salt}(); 
-        pair = address(d);
+        TradingPairExchange tpe = new TradingPairExchange{salt: salt}(); 
+        pair = address(tpe);
 
         ITradingPairExchange(pair).initialize(tokenA, tokenB);
         getTradingPair[tokenA][tokenB] = pair;
         getTradingPair[tokenB][tokenA] = pair;
         allTradingPairs.push(pair);
-        emit TradingPairCreated(tokenA, tokenB, pair);
+        emit TradingPairCreated(tokenA, tokenB, pair, allTradingPairs.length);
     }
 }
