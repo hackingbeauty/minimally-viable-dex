@@ -1,6 +1,8 @@
 const { expect } = require("chai");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { ethers } = require("hardhat");
+const { bigNumberSqrt } = require("../helpers/math-helpers.js");
+const BigNumber = require('bignumber.js');
 describe("Router contract", ()=> {
     async function deployRouterFixture() {
         /* AAVE/DAI, 1 AAVE = $56 USD, 1 DAI = $1 USD */
@@ -158,13 +160,93 @@ describe("Router contract", ()=> {
             });
 
         });
-        describe("should mint the correct number of Liquidity Tokens", () => {
+        describe.only("should mint the correct number of Liquidity Tokens", () => {
+            const MINIMUM_LIQUIDITY = 10**3;
             it("for a new liquidity pool", async() => {
-                expect(true).to.equal(true);
+                const { 
+                    aaveToken,
+                    daiToken,
+                    amountADesired,
+                    amountBDesired,
+                    amountAMin,
+                    amountBMin,
+                    router,
+                    liquidityProvider,
+                    deadline
+                } = await loadFixture(deployRouterFixture);
+
+                const { amountA, amountB, liquidity } = await router.callStatic.depositLiquidity(
+                    aaveToken.address,
+                    daiToken.address,
+                    amountADesired,
+                    amountBDesired,
+                    amountAMin,
+                    amountBMin,
+                    liquidityProvider.address,
+                    deadline
+                );
+      
+                const geometricMean = bigNumberSqrt(amountA.mul(amountB)).sub(MINIMUM_LIQUIDITY);
+                expect(liquidity).to.equal(geometricMean);
             });
 
             it("for an existing liquidity pool", async() => {
-                expect(true).to.equal(true);
+                const { 
+                    aaveToken,
+                    daiToken,
+                    amountADesired,
+                    amountBDesired,
+                    amountAMin,
+                    amountBMin,
+                    router,
+                    liquidityProvider,
+                    deadline
+                } = await loadFixture(deployRouterFixture);
+
+                await router.depositLiquidity(
+                    aaveToken.address,
+                    daiToken.address,
+                    amountADesired,
+                    amountBDesired,
+                    amountAMin,
+                    amountBMin,
+                    liquidityProvider.address,
+                    deadline
+                );
+
+                const { amountA, amountB, liquidity } = await router.callStatic.depositLiquidity(
+                    aaveToken.address,
+                    daiToken.address,
+                    amountADesired,
+                    amountBDesired,
+                    amountAMin,
+                    amountBMin,
+                    liquidityProvider.address,
+                    deadline
+                );
+                
+                // what's the largest number that can fit inside of a uint256 in Solidity? (256 bits)
+                // and what's the largest number that can fit inside of a Javascript number? (53bits)
+                const totalSupply = ethers.BigNumber.from("7483314773547882771");
+                const reserve0 = ethers.BigNumber.from("1000000000000000000");
+                const reserve1 = ethers.BigNumber.from("56000000000000000000");
+
+                const minFirst = ethers.utils.formatUnits(amountA.mul(totalSupply).div(reserve0));
+                const minSecond = ethers.utils.formatUnits(amountB.mul(totalSupply).div(reserve1));
+                
+                const bigNumberJsMinFirst = new BigNumber(minFirst);
+                const bigNumberJsMinSecond = new BigNumber(minSecond);
+                const minValue = BigNumber.min(bigNumberJsMinFirst, bigNumberJsMinSecond);
+                const formattedMinValue = minValue.toFormat();
+                const formattedLiquidity = ethers.utils.formatUnits(liquidity);
+
+                // console.log('---- minFirst ----', minFirst);
+                // console.log('---- minSecond ----', minSecond);
+                // console.log('------ the minimum number is -----', typeof formattedMinValue);
+                // console.log('------ formattedLiquidity is ----', typeof formattedLiquidity);
+                // liquidity = Math.min((amount0 * _totalSupply) / _reserve0, (amount1 * _totalSupply) / _reserve1);
+                
+                expect(formattedLiquidity).to.equal(formattedMinValue);
             });
 
         });

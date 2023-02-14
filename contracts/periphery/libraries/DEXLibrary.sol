@@ -4,7 +4,6 @@ pragma solidity=0.8.17;
 import '../../core/interfaces/ITradingPairExchange.sol';
 import '../../core/TradingPairExchange.sol';
 import '../../core/interfaces/IFactory.sol';
-import 'hardhat/console.sol';
 
 library DEXLibrary {
 

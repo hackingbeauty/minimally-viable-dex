@@ -3,8 +3,12 @@ pragma solidity=0.8.17;
 
 import './interfaces/ITradingPairExchange.sol';
 import './interfaces/IERC20.sol';
+import './LiquidityTokenERC20.sol';
+import './libraries/Math.sol';
 
-contract TradingPairExchange is ITradingPairExchange {
+contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
+    uint public constant MINIMUM_LIQUIDITY = 10**3;
+
     address public factoryAddr;
     address public tokenA;
     address public tokenB;
@@ -40,7 +44,6 @@ contract TradingPairExchange is ITradingPairExchange {
     }
 
     function _update(uint balance0, uint balance1) private {
-        // require(balance0 <= uint112(-1) && balance1 <= uint112(-1), 'DEX: Overflow');
         require(balance0 <= type(uint112).max && balance1 <= type(uint112).max, 'DEX: Overflow');
         reserve0 = uint112(balance0);
         reserve1 = uint112(balance1);
@@ -55,6 +58,16 @@ contract TradingPairExchange is ITradingPairExchange {
         uint amount0 = balance0 - _reserve0;
         uint amount1 = balance1 - _reserve1;
         
+        uint _totalSupply = totalSupply; //gas savings
+        if (_totalSupply == 0) {
+            liquidity = Math.sqrt(amount0 * amount1) - (MINIMUM_LIQUIDITY);
+           _mint(address(0), MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
+        } else {    
+            liquidity = Math.min((amount0 * _totalSupply) / _reserve0, (amount1 * _totalSupply) / _reserve1);
+       }
+        require(liquidity > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED');
+
+        _mint(to, liquidity);
         _update(balance0, balance1);
         emit Mint(msg.sender, amount0, amount1);
     }
