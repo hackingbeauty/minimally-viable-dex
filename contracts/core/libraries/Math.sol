@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity=0.8.17;
+import 'hardhat/console.sol';
 
 // a library for performing various math operations
 library Math {
@@ -18,6 +19,15 @@ library Math {
             }
         } else if (y != 0) {
             z = 1;
+        }
+    }
+
+    function mul(uint256 a, uint256 b) internal pure returns(uint256 product) {
+        assembly { product := mul(a,b) }
+        if(product <= type(uint256).max && product >= 0) {
+            return product;
+        } else {
+            revert('overflow/underflow');
         }
     }
 }

@@ -2,12 +2,13 @@
 pragma solidity=0.8.17;
 
 import './interfaces/IERC20.sol';
+import 'hardhat/console.sol';
 
 contract LiquidityTokenERC20 is IERC20 {
     string public constant name = 'Minimally Viable Decentralized Exchange';
     string public constant symbol = 'MVDE';
     uint8 public constant decimals = 18;
-    uint  public totalSupply;
+    uint public totalSupply;
     mapping(address => uint) public balanceOf;
     mapping(address => mapping(address => uint)) public allowance;
 

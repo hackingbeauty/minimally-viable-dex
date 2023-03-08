@@ -7,6 +7,8 @@ import '../core/interfaces/ITradingPairExchange.sol';
 import './libraries/DEXLibrary.sol';
 import './libraries/TransferHelper.sol';
 
+import 'hardhat/console.sol';
+
 contract Router is IRouter {
     address public immutable factoryAddr;
 

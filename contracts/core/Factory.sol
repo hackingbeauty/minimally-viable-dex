@@ -35,4 +35,10 @@ contract Factory is IFactory {
         allTradingPairs.push(pair);
         emit TradingPairCreated(tokenA, tokenB, pair, allTradingPairs.length);
     }
+
+    function setFeeTo(address _feeTo) external {
+        require(msg.sender == feeToSetter, 'DEX: FORBIDDEN_TO_SET_PROTOCOL_FEE');
+        feeTo = _feeTo;
+    }
+
 }

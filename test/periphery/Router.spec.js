@@ -1,10 +1,12 @@
 const { expect } = require("chai");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
-const { ethers } = require("hardhat");
+const { ethers, network } = require("hardhat");
 const { bigNumberSqrt } = require("../helpers/math-helpers.js");
 const BigNumber = require('bignumber.js');
 describe("Router contract", ()=> {
     async function deployRouterFixture() {
+        await network.provider.send("hardhat_reset");
+
         /* AAVE/DAI, 1 AAVE = $56 USD, 1 DAI = $1 USD */
         const amountADesired = ethers.utils.parseUnits('1', 18); //AAVE
         const amountBDesired = ethers.utils.parseUnits('56', 18); //DAI
@@ -160,8 +162,7 @@ describe("Router contract", ()=> {
             });
 
         });
-        describe.only("should mint the correct number of Liquidity Tokens", () => {
-            const MINIMUM_LIQUIDITY = 10**3;
+        describe("should mint the correct number of Liquidity Tokens", () => {
             it("for a new liquidity pool", async() => {
                 const { 
                     aaveToken,
@@ -185,7 +186,8 @@ describe("Router contract", ()=> {
                     liquidityProvider.address,
                     deadline
                 );
-      
+
+                const MINIMUM_LIQUIDITY = 10**3;
                 const geometricMean = bigNumberSqrt(amountA.mul(amountB)).sub(MINIMUM_LIQUIDITY);
                 expect(liquidity).to.equal(geometricMean);
             });
@@ -227,26 +229,25 @@ describe("Router contract", ()=> {
                 
                 // what's the largest number that can fit inside of a uint256 in Solidity? (256 bits)
                 // and what's the largest number that can fit inside of a Javascript number? (53bits)
-                const totalSupply = ethers.BigNumber.from("7483314773547882771");
-                const reserve0 = ethers.BigNumber.from("1000000000000000000");
-                const reserve1 = ethers.BigNumber.from("56000000000000000000");
-
-                const minFirst = ethers.utils.formatUnits(amountA.mul(totalSupply).div(reserve0));
-                const minSecond = ethers.utils.formatUnits(amountB.mul(totalSupply).div(reserve1));
                 
-                const bigNumberJsMinFirst = new BigNumber(minFirst);
-                const bigNumberJsMinSecond = new BigNumber(minSecond);
-                const minValue = BigNumber.min(bigNumberJsMinFirst, bigNumberJsMinSecond);
-                const formattedMinValue = minValue.toFormat();
+                //Math.sqrt(amount0 * amount1) - (MINIMUM_LIQUIDITY)
+                //the squart root of the product of amountA and amountB...minus MINIMUM_LIQUIDITY
+                const totalSupply = ethers.BigNumber.from("7483314773547882771"); 
+                const reserve0 = amountADesired;
+                const reserve1 = amountBDesired;
+
+                // liquidity = Math.min((amountA * _totalSupply) / _reserveA, (amountB * _totalSupply) / _reserveB);
+
+                const tokenAPercentIncrease = amountA.mul(totalSupply).div(reserve0);
+                const tokenBPercentIncrease = amountB.mul(totalSupply).div(reserve1);
+                
+                const bnTokenAPercentIncrease = new BigNumber(ethers.utils.formatUnits(tokenAPercentIncrease));
+                const bnTokenBPercentIncrease = new BigNumber(ethers.utils.formatUnits(tokenBPercentIncrease));
+                const minimum = BigNumber.min(bnTokenAPercentIncrease, bnTokenBPercentIncrease);
+                const formattedMininum = minimum.toFormat();
                 const formattedLiquidity = ethers.utils.formatUnits(liquidity);
 
-                // console.log('---- minFirst ----', minFirst);
-                // console.log('---- minSecond ----', minSecond);
-                // console.log('------ the minimum number is -----', typeof formattedMinValue);
-                // console.log('------ formattedLiquidity is ----', typeof formattedLiquidity);
-                // liquidity = Math.min((amount0 * _totalSupply) / _reserve0, (amount1 * _totalSupply) / _reserve1);
-                
-                expect(formattedLiquidity).to.equal(formattedMinValue);
+                expect(formattedLiquidity).to.equal(formattedMininum);
             });
 
         });

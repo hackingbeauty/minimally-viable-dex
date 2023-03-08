@@ -37,7 +37,7 @@ library DEXLibrary {
     }    
 
     // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
-    function quote(uint amountA, uint reserveA, uint reserveB) internal view  returns (uint amountB) {
+    function quote(uint amountA, uint reserveA, uint reserveB) internal pure returns (uint amountB) {
         require(amountA > 0, 'DEXLibrary: INSUFFICIENT_AMOUNT');
         require(reserveA > 0 && reserveB > 0, 'DEXLibrary: INSUFFICIENT LIQUIDITY');
         amountB = (amountA * reserveB)/reserveA;
