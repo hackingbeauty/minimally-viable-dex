@@ -25,7 +25,7 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
     event Mint(address indexed sender, uint amount0, uint amount1);
 
     modifier lock() {
-        require(unlocked == 1, 'UniswapV2: LOCKED');
+        require(unlocked == 1, 'DEX: LOCKED');
         unlocked = 0;
         _;
         unlocked = 1;
@@ -88,7 +88,7 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
         uint amount1 = balance1 - _reserve1;
         
         bool feeOn = _mintFee(_reserve0, _reserve1);
-
+        console.log('--- to addrress is ---', to);
         uint _totalSupply = totalSupply; // gas savings
         if (_totalSupply == 0) {
             liquidity = Math.sqrt(amount0 * amount1) - (MINIMUM_LIQUIDITY);

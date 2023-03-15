@@ -80,7 +80,8 @@ describe("TradingPairExchange contract", ()=> {
             tradingPairExchange,
             liquidityProvider,
             factory,
-            dexDeveloperAccount
+            dexDeveloperAccount,
+            deployer
         }
     }
 
@@ -225,6 +226,79 @@ describe("TradingPairExchange contract", ()=> {
             expect(formattedLiquidityProviderAccountBalance).to.equal("9.354143466934852463");
         });
     
+
+    });
+
+    describe("Preeventing Reentrancy Attacks", () => {
+
+        it.only("should ensure the mint() function is locked throughout execution", async()=> {
+            const { 
+                aaveToken,
+                daiToken,
+                amountADesired,
+                amountBDesired,
+                tradingPairExchange,
+                liquidityProvider,
+                deployer
+            } = await loadFixture(deployExchangeFixture);
+
+            const reentrancyAttackContract = await ethers.getContractFactory("ReentrancyAttacker");
+            const reentrancyAttacker = await reentrancyAttackContract.deploy(tradingPairExchange.address);
+            await reentrancyAttacker.deployed();
+
+            const reentracyAttackerSigner = reentrancyAttacker.provider.getSigner();
+
+
+            /* Mint tokens for Liquidity Provider's account */
+            await aaveToken.mint(
+                reentrancyAttacker.address,
+                ethers.utils.parseUnits('130', 18)
+            );
+
+            await daiToken.mint(
+                reentrancyAttacker.address,
+                ethers.utils.parseUnits('130', 18)
+            );
+
+
+            await reentrancyAttacker.approve(
+                aaveToken.address,
+                deployer.address,
+                ethers.utils.parseUnits('130', 18)
+            );
+            await reentrancyAttacker.approve(
+                daiToken.address,
+                deployer.address,
+                ethers.utils.parseUnits('130', 18)
+            );
+
+
+            // /* Transfer tokens from Liquidity Provider account to AAVE/DAI pool */
+            await aaveToken.transferFrom(
+                reentrancyAttacker.address,
+                tradingPairExchange.address,
+                amountADesired
+            );
+            await daiToken.transferFrom(
+                reentrancyAttacker.address,
+                tradingPairExchange.address,
+                amountBDesired
+            );
+
+            console.log('---- reentrancyAttacker.address ----', reentrancyAttacker.address);
+            console.log('---- tradingPairExchange.balanceOf(reentrancyAttack) ----', await tradingPairExchange.balanceOf(reentrancyAttacker.address));
+
+            console.log('---- dai allowance -----', await daiToken.callStatic.allowance(reentrancyAttacker.address, deployer.address));
+            console.log('---- aave allowance -----', await aaveToken.callStatic.allowance(reentrancyAttacker.address, deployer.address));
+
+            // /* Mint Liquidity Tokens for the Reentrancy Attacker */
+            await tradingPairExchange.mint(reentrancyAttacker.address);
+
+            console.log('---- tradingPairExchange.balanceOf(reentrancyAttack) ----', await tradingPairExchange.balanceOf(reentrancyAttacker.address));
+
+                
+
+        });
 
     });
 
