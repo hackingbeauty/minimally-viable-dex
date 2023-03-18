@@ -73,4 +73,22 @@ contract Router is IRouter {
         TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
         liquidity = ITradingPairExchange(pair).mint(to);
     }
+
+    function withdrawLiquidity(
+        address tokenA,
+        address tokenB,
+        uint liquidity,
+        uint amountAMin,
+        uint amountBMin,
+        address to,
+        uint deadline
+    ) external ensure(deadline) returns (uint amountAReturned, uint amountBReturned) {
+        address pair = DEXLibrary.pairFor(factoryAddr, tokenA, tokenB);
+        ITradingPairExchange(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
+        (uint amountASent, uint amountBSent) = ITradingPairExchange(pair).burn(to);
+        amountAReturned = amountASent;
+        amountBReturned = amountBSent;
+        //add sorting code
+    }
+
 }

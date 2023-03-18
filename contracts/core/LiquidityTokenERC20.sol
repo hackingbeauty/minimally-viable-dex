@@ -2,7 +2,6 @@
 pragma solidity=0.8.17;
 
 import './interfaces/IERC20.sol';
-import 'hardhat/console.sol';
 
 contract LiquidityTokenERC20 is IERC20 {
     string public constant name = 'Minimally Viable Decentralized Exchange';
@@ -35,7 +34,7 @@ contract LiquidityTokenERC20 is IERC20 {
         emit Transfer(from, to, value);
     }
 
-    function approve(address spender, uint value) external returns (bool) {
+    function approve(address spender, uint value) public virtual returns (bool) {
         _approve(msg.sender, spender, value);
         return true;
     }
@@ -45,7 +44,7 @@ contract LiquidityTokenERC20 is IERC20 {
         return true;
     }
 
-    function transferFrom(address from, address to, uint value) external returns (bool) {
+    function transferFrom(address from, address to, uint value) public virtual returns (bool) {
         if (allowance[from][msg.sender] != type(uint).max) {
             allowance[from][msg.sender] = allowance[from][msg.sender] - value;
         }

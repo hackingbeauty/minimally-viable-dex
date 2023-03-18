@@ -11,6 +11,7 @@ import 'hardhat/console.sol';
 
 contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
     uint public constant MINIMUM_LIQUIDITY = 10**3;
+    bytes4 private constant SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
 
     address public factoryAddr;
     address public tokenA;
@@ -23,6 +24,7 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
     uint private unlocked = 1;
     
     event Mint(address indexed sender, uint amount0, uint amount1);
+    event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
 
     modifier lock() {
         require(unlocked == 1, 'DEX: LOCKED');
@@ -45,6 +47,11 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
         _reserve0 = reserve0;
         _reserve1 = reserve1;
         _blockTimestampLast = blockTimestampLast;
+    }
+
+    function _safeTransfer(address token, address to, uint value) private {
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(SELECTOR, to, value));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), 'UniswapV2: TRANSFER_FAILED');
     }
 
     function _update(uint balance0, uint balance1) private {
@@ -88,7 +95,6 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
         uint amount1 = balance1 - _reserve1;
         
         bool feeOn = _mintFee(_reserve0, _reserve1);
-        console.log('--- to addrress is ---', to);
         uint _totalSupply = totalSupply; // gas savings
         if (_totalSupply == 0) {
             liquidity = Math.sqrt(amount0 * amount1) - (MINIMUM_LIQUIDITY);
@@ -97,7 +103,6 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
             liquidity = Math.min((amount0 * _totalSupply) / _reserve0, (amount1 * _totalSupply) / _reserve1);
         }
         require(liquidity > 0, 'DEX: INSUFFICIENT_LIQUIDITY_MINTED');
-
         _mint(to, liquidity);
         _update(balance0, balance1);
 
@@ -105,5 +110,48 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
             kLast = Math.mul(_reserve0, _reserve1);
         } // reserve0 and reserve1 are up-to-date
         emit Mint(msg.sender, amount0, amount1);
+    }
+
+
+    function burn(address to) external lock returns (uint amountASent, uint amountBSent) {
+        (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
+        address _token0 = tokenA;                                // gas savings
+        address _token1 = tokenB;                                // gas savings
+        uint balance0 = IERC20(_token0).balanceOf(address(this));
+        uint balance1 = IERC20(_token1).balanceOf(address(this));
+        uint liquidity = balanceOf[address(this)];
+
+        bool feeOn = _mintFee(_reserve0, _reserve1);
+        uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
+        amountASent = (liquidity * balance0) / _totalSupply; // using balances ensures pro-rata distribution
+        amountBSent = (liquidity * balance1) / _totalSupply; // using balances ensures pro-rata distribution
+
+        require(amountASent > 0 && amountBSent > 0, 'DEX: INSUFFICIENT_LIQUIDITY_BURNED');
+        _burn(address(this), liquidity);
+        _safeTransfer(_token0, to, amountASent);
+        _safeTransfer(_token1, to, amountBSent);
+        balance0 = IERC20(_token0).balanceOf(address(this));
+        balance1 = IERC20(_token1).balanceOf(address(this));
+
+        _update(balance0, balance1);
+        if (feeOn) kLast = uint(reserve0 * reserve1); // reserve0 and reserve1 are up-to-date
+        emit Burn(msg.sender, amountASent, amountBSent, to);
+    }
+
+    function approve(
+        address spender,
+        uint value
+    ) public override(ITradingPairExchange, LiquidityTokenERC20) returns (bool) { 
+        (bool approvalSuccess ) = super.approve(spender, value);
+        return approvalSuccess;
+    }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint value
+    ) public override(ITradingPairExchange, LiquidityTokenERC20) returns (bool) { 
+        (bool transferSuccess ) = super.transferFrom(from, to, value);
+        return transferSuccess;
     }
 }

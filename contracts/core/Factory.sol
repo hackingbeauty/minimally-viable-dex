@@ -5,6 +5,8 @@ import './interfaces/IFactory.sol';
 import './interfaces/ITradingPairExchange.sol';
 import './TradingPairExchange.sol';
 
+import 'hardhat/console.sol';
+
 contract Factory is IFactory {
     address public feeTo;
     address public feeToSetter;
