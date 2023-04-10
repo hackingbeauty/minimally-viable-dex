@@ -328,16 +328,29 @@ describe("Router contract", ()=> {
                 deployer
             );
 
-            /* Liquidity Proider approve Router to transfer Liquidity Tokens */
+            /* Liquidity Provider approve Router to transfer Liquidity Tokens */
             await tradingPairExchange.connect(liquidityProvider).approve(
                 router.address,
                 ethers.utils.parseUnits('5', 18)
             );
-    
+
             /* Transaction deadline of 20 minutes */
             const currentTime = Math.floor(Date.now() / 1000); //divide by 1000 to get seconds
             const deadline = currentTime + (20 * 60); //deadline is current time + 20 minutes
-    
+            
+            /* Initialize a new liquidity pool */
+            const depositTx = await router.depositLiquidity(
+                aaveToken.address,
+                daiToken.address,
+                amountADesired,
+                amountBDesired,
+                amountAMin,
+                amountBMin,
+                liquidityProvider.address,
+                deadline
+            );
+            await depositTx.wait();
+                
             return {
                 aaveToken,
                 daiToken,
@@ -359,50 +372,65 @@ describe("Router contract", ()=> {
                 router,
                 aaveToken,
                 daiToken,
-                amountAMin,
-                amountBMin,
-                amountADesired,
-                amountBDesired,
                 liquidityProvider,
                 deadline,
                 tradingPairExchange
             } = await loadFixture(deploySecondaryRouterFixture);
-            
-            /* Initialize a new liquidity pool */
-            await router.depositLiquidity(
-                aaveToken.address,
-                daiToken.address,
-                amountADesired,
-                amountBDesired,
-                amountAMin,
-                amountBMin,
-                liquidityProvider.address,
-                deadline
-            );
+
+            const liquidityTokensToBurn = ethers.utils.parseUnits('4', 18);
+            const minAmountAToReturn = ethers.utils.parseUnits('0.5', 18);
+            const minAmountBToReturn = ethers.utils.parseUnits('29', 18);
 
             /* Withdraw Liquidity Tokens */
-            const { amountAReturned, amountBReturned } = await router.callStatic.withdrawLiquidity(
+            const { amountA, amountB } = await router.callStatic.withdrawLiquidity(
                 aaveToken.address,
                 daiToken.address,
-                ethers.utils.parseUnits('5', 18),
-                amountAMin,
-                amountBMin,
+                liquidityTokensToBurn,
+                minAmountAToReturn,
+                minAmountBToReturn,
                 liquidityProvider.address,
                 deadline
             );
 
-            /* Formatted amounts */
-            const formattedAaveTokensCredited = ethers.utils.formatUnits(amountAReturned);
-            const formattedDaiTokensCredited = ethers.utils.formatUnits(amountBReturned);
-            const liquidityProviderBalance = await tradingPairExchange.balanceOf(liquidityProvider.address);
-            const formattedLiquidityProviderBalance = ethers.utils.formatUnits(liquidityProviderBalance);
-
-            /* expect Liqiudity Provider to have a debitted amount of Liquidity Tokens */
-            expect(formattedLiquidityProviderBalance).to.equal("7.483314773547881771");
+            /* Format ERC20 Token balances */
+            const formattedAaveTokensCredited = ethers.utils.formatUnits(amountA);
+            const formattedDaiTokensCredited = ethers.utils.formatUnits(amountB);
 
             /* expect Liquidity Provider to now have additional AAVE and DAI tokens in their accounts */
-            expect(formattedAaveTokensCredited).to.equal("0.668153104781060961");
-            expect(formattedDaiTokensCredited).to.equal("37.416573867739413856");
+            expect(formattedAaveTokensCredited).to.equal("0.534522483824848769");
+            expect(formattedDaiTokensCredited).to.equal("29.933259094191531085");
+        });
+
+        it("should debit correct number of Liquidity Tokens from Liquidity Provider's account", async() => {
+            const { 
+                router,
+                aaveToken,
+                daiToken,
+                liquidityProvider,
+                deadline,
+                tradingPairExchange
+            } = await loadFixture(deploySecondaryRouterFixture);
+
+            const liquidityTokensToBurn = ethers.utils.parseUnits('4', 18);
+            const minAmountAToReturn = ethers.utils.parseUnits('0.5', 18);
+            const minAmountBToReturn = ethers.utils.parseUnits('29', 18);
+
+            /* Withdraw Liquidity Tokens */
+            const tx = await router.withdrawLiquidity(
+                aaveToken.address,
+                daiToken.address,
+                liquidityTokensToBurn,
+                minAmountAToReturn,
+                minAmountBToReturn,
+                liquidityProvider.address,
+                deadline
+            );
+            await tx.wait();
+            
+            /* Get updated Liquidity Provider balance after withdrawal, and format */
+            const updatedLiquidityBalance = await tradingPairExchange.balanceOf(liquidityProvider.address)
+            const formattedUpdatedLiquidityBalance = ethers.utils.formatUnits(updatedLiquidityBalance);
+            expect(formattedUpdatedLiquidityBalance).to.equal("3.483314773547881771");
         });
 
     });

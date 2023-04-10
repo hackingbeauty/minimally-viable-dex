@@ -9,7 +9,7 @@ const path = require('node:path');
 // testing the frontend.
 require("./tasks/faucet");
 require("hardhat-gas-reporter");
-// require('dotenv').config();
+require('dotenv').config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -22,11 +22,11 @@ module.exports = {
      }
     }
   },
-  // gasReporter: {
-  //   enabled: (process.env.REPORT_GAS) ? true : false,
-  //   currency: "USD",
-  //   coinmarketcap: process.env.COINMARKETCAP_API_KEY
-  // }
+  gasReporter: {
+    enabled: process.env.REPORT_GAS === "true" ? true : false,
+    currency: "USD",
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY
+  }
 };
 
 subtask(

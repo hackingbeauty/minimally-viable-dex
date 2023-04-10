@@ -7,8 +7,6 @@ import '../core/interfaces/ITradingPairExchange.sol';
 import './libraries/DEXLibrary.sol';
 import './libraries/TransferHelper.sol';
 
-import 'hardhat/console.sol';
-
 contract Router is IRouter {
     address public immutable factoryAddr;
 
@@ -82,13 +80,15 @@ contract Router is IRouter {
         uint amountBMin,
         address to,
         uint deadline
-    ) external ensure(deadline) returns (uint amountAReturned, uint amountBReturned) {
-        address pair = DEXLibrary.pairFor(factoryAddr, tokenA, tokenB);
+    ) external ensure(deadline) returns (uint amountA, uint amountB) {
+        address pair = DEXLibrary.pairFor(factoryAddr, tokenA, tokenB); 
         ITradingPairExchange(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
         (uint amountASent, uint amountBSent) = ITradingPairExchange(pair).burn(to);
-        amountAReturned = amountASent;
-        amountBReturned = amountBSent;
-        //add sorting code
+        
+        (address token0,) = DEXLibrary.sortTokens(tokenA, tokenB);
+        (amountA, amountB) = tokenA == token0 ? (amountASent, amountBSent) : (amountBSent, amountASent);
+        require(amountA >= amountAMin, 'DEX: INSUFFICIENT_A_AMOUNT');
+        require(amountB >= amountBMin, 'DEX: INSUFFICIENT_B_AMOUNT');
     }
 
 }

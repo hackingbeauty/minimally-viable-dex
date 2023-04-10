@@ -68,7 +68,7 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
 
         feeOn = feeTo != address(0);
         uint _kLast = kLast; // gas savings
-       
+
         if (feeOn) {
             if (_kLast != 0) {
                 uint rootK = Math.sqrt(Math.mul(_reserve0, _reserve1));
@@ -99,19 +99,17 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
         if (_totalSupply == 0) {
             liquidity = Math.sqrt(amount0 * amount1) - (MINIMUM_LIQUIDITY);
            _mint(address(0), MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
-        } else {    
+        } else {
             liquidity = Math.min((amount0 * _totalSupply) / _reserve0, (amount1 * _totalSupply) / _reserve1);
         }
         require(liquidity > 0, 'DEX: INSUFFICIENT_LIQUIDITY_MINTED');
+
         _mint(to, liquidity);
         _update(balance0, balance1);
 
-        if (feeOn) { 
-            kLast = Math.mul(_reserve0, _reserve1);
-        } // reserve0 and reserve1 are up-to-date
+        if (feeOn) { kLast = Math.mul(_reserve0, _reserve1); } // reserve0 and reserve1 are up-to-date
         emit Mint(msg.sender, amount0, amount1);
     }
-
 
     function burn(address to) external lock returns (uint amountASent, uint amountBSent) {
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
@@ -125,16 +123,17 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
         uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
         amountASent = (liquidity * balance0) / _totalSupply; // using balances ensures pro-rata distribution
         amountBSent = (liquidity * balance1) / _totalSupply; // using balances ensures pro-rata distribution
-
         require(amountASent > 0 && amountBSent > 0, 'DEX: INSUFFICIENT_LIQUIDITY_BURNED');
+
         _burn(address(this), liquidity);
         _safeTransfer(_token0, to, amountASent);
         _safeTransfer(_token1, to, amountBSent);
+
         balance0 = IERC20(_token0).balanceOf(address(this));
         balance1 = IERC20(_token1).balanceOf(address(this));
-
         _update(balance0, balance1);
-        if (feeOn) kLast = uint(reserve0 * reserve1); // reserve0 and reserve1 are up-to-date
+
+        if (feeOn) kLast = Math.mul(_reserve0, _reserve1); // reserve0 and reserve1 are up-to-date
         emit Burn(msg.sender, amountASent, amountBSent, to);
     }
 
