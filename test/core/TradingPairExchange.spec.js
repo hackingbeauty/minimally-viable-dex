@@ -1,17 +1,20 @@
 const { expect } = require("chai");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { ethers, network } = require("hardhat");
+
 describe("TradingPairExchange contract", ()=> {
-    async function deployExchangeFixture() {
+    async function deployTradingPairExchangeFixture() {
         await network.provider.send("hardhat_reset");
 
         /* AAVE/DAI, 1 AAVE = $56 USD, 1 DAI = $1 USD */
         const amountADesired = ethers.utils.parseUnits('1', 18); //AAVE
         const amountBDesired = ethers.utils.parseUnits('56', 18); //DAI
-        const amountAMin = ethers.utils.parseUnits('.99', 18); //AAVE
-        const amountBMin = ethers.utils.parseUnits('55.44', 18); //DAI
 
-        const [deployer, liquidityProvider, dexDeveloperAccount] = await ethers.getSigners();
+        const [deployer, liquidityProvider, exchangeDev] = await ethers.getSigners();
+
+        const FactoryContract = await ethers.getContractFactory("Factory");
+        const factory = await FactoryContract.deploy(deployer.address);
+        await factory.deployed();
 
         const AaveTokenContract = await ethers.getContractFactory("ERC20Basic");
         const aaveToken = await AaveTokenContract.deploy(
@@ -53,20 +56,16 @@ describe("TradingPairExchange contract", ()=> {
             ethers.utils.parseUnits('130', 18)
         );
 
-        const FactoryContract = await ethers.getContractFactory("Factory");
-        const factory = await FactoryContract.deploy(deployer.address);
-        await factory.deployed();
-
         const tradingPairExchangeContract = await factory.createTradingPair(
             aaveToken.address,
             daiToken.address
-        );    
+        );
         const receipt = await tradingPairExchangeContract.wait();
-        const tradingPairExchangeAddr = receipt.events[0].args[2];
+        const tradingPairExchangeAddress = receipt.events[0].args[2];
 
         const tradingPairExchange = await ethers.getContractAt(
             "TradingPairExchange",
-            tradingPairExchangeAddr,
+            tradingPairExchangeAddress,
             deployer
         );
 
@@ -75,33 +74,28 @@ describe("TradingPairExchange contract", ()=> {
             daiToken,
             amountADesired,
             amountBDesired,
-            amountAMin,
-            amountBMin,
-            tradingPairExchange,
             liquidityProvider,
             factory,
-            dexDeveloperAccount,
-            deployer
+            exchangeDev,
+            tradingPairExchange
         }
     }
-
-    describe("Minting Liquidity Tokens", () => {
-        it("should remit payment of the protocol fee to the exchange developer account", async() => {
+    
+    describe("Minting Liquidity Tokens", () =>{
+        it("should remit payment of the protocol fee to the exchange developer account", async() =>{
             const { 
                 aaveToken,
                 daiToken,
                 amountADesired,
                 amountBDesired,
-                tradingPairExchange,
                 liquidityProvider,
+                exchangeDev,
                 factory,
-                dexDeveloperAccount
-            } = await loadFixture(deployExchangeFixture);
+                tradingPairExchange
+            } = await loadFixture(deployTradingPairExchangeFixture);
 
-            /* Set Protocol Fee recipient to DEX Developer account */
-            await factory.setFeeTo(dexDeveloperAccount.address);
+            await factory.setFeeTo(exchangeDev.address);
 
-            /* Transfer tokens from Liquidity Provider account to AAVE/DAI pool */
             await aaveToken.transferFrom(
                 liquidityProvider.address,
                 tradingPairExchange.address,
@@ -112,11 +106,8 @@ describe("TradingPairExchange contract", ()=> {
                 tradingPairExchange.address,
                 amountBDesired
             );
-
-            /* Mint Liquidity Tokens for the Liquidity Provider */
             await tradingPairExchange.mint(liquidityProvider.address);
 
-            /* Transfer tokens from Liquidity Provider account to AAVE/DAI pool */
             await aaveToken.transferFrom(
                 liquidityProvider.address,
                 tradingPairExchange.address,
@@ -127,11 +118,8 @@ describe("TradingPairExchange contract", ()=> {
                 tradingPairExchange.address,
                 ethers.utils.parseUnits('14', 18)
             );
-
-            /* Mint Liquidity Tokens for the Liquidity Provider */
             await tradingPairExchange.mint(liquidityProvider.address);
 
-            /* Transfer tokens from Liquidity Provider account to AAVE/DAI pool */
             await aaveToken.transferFrom(
                 liquidityProvider.address,
                 tradingPairExchange.address,
@@ -142,26 +130,23 @@ describe("TradingPairExchange contract", ()=> {
                 tradingPairExchange.address,
                 ethers.utils.parseUnits('14', 18)
             );
-
-            /* Mint Liquidity Tokens for the Liquidity Provider */
             await tradingPairExchange.mint(liquidityProvider.address);
 
-            const dexDeveloperAccountBalance = await tradingPairExchange.balanceOf(dexDeveloperAccount.address);
-            const formattedDexDeveloperAccountBalance = ethers.utils.formatUnits(dexDeveloperAccountBalance);
-            expect(formattedDexDeveloperAccountBalance).to.equal("0.322556671273615636");
+            const exchangeDevAccountBalance = await tradingPairExchange.balanceOf(exchangeDev.address);
+            const formattedExchangeDevAccountBalance = ethers.utils.formatUnits(exchangeDevAccountBalance);
+            expect(formattedExchangeDevAccountBalance).to.equal("0.322556671273615636");
         });
-        
-        it("should update a Liquidity Provider's account after a deposit into a new pool", async() => {
+
+        it("should update a Liquidity Provider's account after a deposit into a new pool", async() =>{
             const { 
                 aaveToken,
                 daiToken,
                 amountADesired,
                 amountBDesired,
-                tradingPairExchange,
-                liquidityProvider
-            } = await loadFixture(deployExchangeFixture);
+                liquidityProvider,
+                tradingPairExchange
+            } = await loadFixture(deployTradingPairExchangeFixture);
 
-            /* Transfer tokens from Liquidity Provider account to AAVE/DAI pool */
             await aaveToken.transferFrom(
                 liquidityProvider.address,
                 tradingPairExchange.address,
@@ -172,8 +157,6 @@ describe("TradingPairExchange contract", ()=> {
                 tradingPairExchange.address,
                 amountBDesired
             );
-
-            /* Mint Liquidity Tokens for the Liquidity Provider */
             await tradingPairExchange.mint(liquidityProvider.address);
 
             const liquidityProviderAccountBalance = await tradingPairExchange.balanceOf(liquidityProvider.address);
@@ -181,17 +164,16 @@ describe("TradingPairExchange contract", ()=> {
             expect(formattedLiquidityProviderAccountBalance).to.equal("7.483314773547881771");
         });
 
-        it("should update a Liquidity Provider's account after a deposit into an existing pool", async() => {
+        it("should update a Liquidity Provider's account after a deposit into an existing pool", async() =>{
             const { 
                 aaveToken,
                 daiToken,
                 amountADesired,
                 amountBDesired,
-                tradingPairExchange,
-                liquidityProvider
-            } = await loadFixture(deployExchangeFixture);
+                liquidityProvider,
+                tradingPairExchange
+            } = await loadFixture(deployTradingPairExchangeFixture);
 
-            /* Transfer tokens from Liquidity Provider account to AAVE/DAI pool */
             await aaveToken.transferFrom(
                 liquidityProvider.address,
                 tradingPairExchange.address,
@@ -202,8 +184,6 @@ describe("TradingPairExchange contract", ()=> {
                 tradingPairExchange.address,
                 amountBDesired
             );
-
-            /* Mint Liquidity Tokens for the Liquidity Provider */
             await tradingPairExchange.mint(liquidityProvider.address);
 
             /* Transfer tokens from Liquidity Provider account to AAVE/DAI pool */
@@ -225,20 +205,23 @@ describe("TradingPairExchange contract", ()=> {
             const formattedLiquidityProviderAccountBalance = ethers.utils.formatUnits(liquidityProviderAccountBalance);
             expect(formattedLiquidityProviderAccountBalance).to.equal("9.354143466934852463");
         });
-    
+
+            
     });
 
     describe("Burning Liquidity Tokens", () => {
-        async function deploySecondaryExchangeFixture() {
+        async function deploySecondaryTradingPairExchangeFixture() {
             await network.provider.send("hardhat_reset");
-
+    
             /* AAVE/DAI, 1 AAVE = $56 USD, 1 DAI = $1 USD */
             const amountADesired = ethers.utils.parseUnits('1', 18); //AAVE
             const amountBDesired = ethers.utils.parseUnits('56', 18); //DAI
-            const amountAMin = ethers.utils.parseUnits('.99', 18); //AAVE
-            const amountBMin = ethers.utils.parseUnits('55.44', 18); //DAI
     
-            const [deployer, liquidityProvider, dexDeveloperAccount] = await ethers.getSigners();
+            const [deployer, liquidityProvider, exchangeDev] = await ethers.getSigners();
+    
+            const FactoryContract = await ethers.getContractFactory("Factory");
+            const factory = await FactoryContract.deploy(deployer.address);
+            await factory.deployed();
     
             const AaveTokenContract = await ethers.getContractFactory("ERC20Basic");
             const aaveToken = await AaveTokenContract.deploy(
@@ -280,20 +263,16 @@ describe("TradingPairExchange contract", ()=> {
                 ethers.utils.parseUnits('130', 18)
             );
     
-            const FactoryContract = await ethers.getContractFactory("Factory");
-            const factory = await FactoryContract.deploy(deployer.address);
-            await factory.deployed();
-    
             const tradingPairExchangeContract = await factory.createTradingPair(
                 aaveToken.address,
                 daiToken.address
-            );    
+            );
             const receipt = await tradingPairExchangeContract.wait();
-            const tradingPairExchangeAddr = receipt.events[0].args[2];
+            const tradingPairExchangeAddress = receipt.events[0].args[2];
     
             const tradingPairExchange = await ethers.getContractAt(
                 "TradingPairExchange",
-                tradingPairExchangeAddr,
+                tradingPairExchangeAddress,
                 deployer
             );
 
@@ -303,7 +282,6 @@ describe("TradingPairExchange contract", ()=> {
                 tradingPairExchange.address,
                 amountADesired
             );
-            
             await daiToken.transferFrom(
                 liquidityProvider.address,
                 tradingPairExchange.address,
@@ -311,27 +289,26 @@ describe("TradingPairExchange contract", ()=> {
             );
 
             await tradingPairExchange.mint(liquidityProvider.address);
- 
+    
             return {
                 aaveToken,
                 daiToken,
                 amountADesired,
                 amountBDesired,
-                amountAMin,
-                amountBMin,
-                tradingPairExchange,
+                deployer,
                 liquidityProvider,
                 factory,
-                dexDeveloperAccount,
-                deployer
+                exchangeDev,
+                tradingPairExchange
             }
         }
-        it("should debit a Liquidity Provider's account after burning Liquidity Tokens", async() => {
-            const { 
+
+        it("should debit a Liquidity Provider's account", async() => {
+            const {
                 deployer,
                 tradingPairExchange,
                 liquidityProvider
-            } = await loadFixture(deploySecondaryExchangeFixture);
+            } = await loadFixture(deploySecondaryTradingPairExchangeFixture);
 
             /* Liquidity Provider approve Deployer to transfer Liquidity Tokens */
             await tradingPairExchange.connect(liquidityProvider).approve(
@@ -347,40 +324,43 @@ describe("TradingPairExchange contract", ()=> {
             );
 
             /* Burn Liquidity Tokens */
-            await tradingPairExchange.burn(liquidityProvider.address);            
+            await tradingPairExchange.burn(liquidityProvider.address);
 
-            /* Formatted Liquidity Token balance */
+            /* Format Liquidity token balances */
             const liquidityProviderBalance = await tradingPairExchange.balanceOf(liquidityProvider.address);
             const formattedLiquidityProviderBalance = ethers.utils.formatUnits(liquidityProviderBalance);
+            const liquidityTokenTotalSupply = await tradingPairExchange.totalSupply();
+            const formattedLiquidityTokenTotalSupply = ethers.utils.formatUnits(liquidityTokenTotalSupply);
 
-            /* expect Liquidity Provider to have a debitted amount of Liquidity Tokens */
+            /* Expect correct debitted amount of Liquidity Tokens */
             expect(formattedLiquidityProviderBalance).to.equal("3.483314773547881771");
+            expect(formattedLiquidityTokenTotalSupply).to.equal("3.483314773547882771");
         });
 
-        it("should send Liquidity Provider ERC20 tokens proportional to amount of Liquidity Tokens burned", async() => {
-            const { 
+        it("should send to Liquidity Provider ERC20 tokens proportional to amount of Liquidity Tokens burned", async() => {
+            const {
                 aaveToken,
                 daiToken,
                 deployer,
                 tradingPairExchange,
                 liquidityProvider
-            } = await loadFixture(deploySecondaryExchangeFixture);
+            } = await loadFixture(deploySecondaryTradingPairExchangeFixture);
 
             /* Liquidity Provider approve Deployer to transfer Liquidity Tokens */
             await tradingPairExchange.connect(liquidityProvider).approve(
                 deployer.address,
-                ethers.utils.parseUnits('5', 18)
+                ethers.utils.parseUnits('7.483314773547881771', 18)
             );
 
             /* Transfer Liquidity Tokens to TradingPairExchange */
             await tradingPairExchange.transferFrom(
                 liquidityProvider.address,
                 tradingPairExchange.address,
-                ethers.utils.parseUnits('4', 18)
+                ethers.utils.parseUnits('7.483314773547881771', 18)
             );
 
             /* Burn Liquidity Tokens */
-            await tradingPairExchange.burn(liquidityProvider.address);  
+            await tradingPairExchange.burn(liquidityProvider.address);
 
             /* Formatted ERC20 Token balance */
             const amountAReturned = await aaveToken.balanceOf(liquidityProvider.address);
@@ -389,25 +369,25 @@ describe("TradingPairExchange contract", ()=> {
             const formattedDaiTokensCredited = ethers.utils.formatUnits(amountBReturned);
 
             /* Expect Liquidity Provider to now have additional AAVE and DAI tokens in their accounts */
-            expect(formattedAaveTokensCredited).to.equal("129.534522483824848769");
-            expect(formattedDaiTokensCredited).to.equal("103.933259094191531085");
+            expect(formattedAaveTokensCredited).to.equal("129.999999999999999866");
+            expect(formattedDaiTokensCredited).to.equal("129.999999999999992516");
         });
 
-        it("should remit payment of the protocol fee to the exchange developer account", async() => {
+        it("should remit payment of the Protocol Fee to the Exchange Developer account", async() => {
             const {
                 aaveToken,
                 daiToken,
                 deployer,
-                dexDeveloperAccount,
+                exchangeDev,
                 factory,
                 tradingPairExchange,
                 liquidityProvider
-            } = await loadFixture(deploySecondaryExchangeFixture);
+            } = await loadFixture(deploySecondaryTradingPairExchangeFixture);
 
             /* Set Protocol Fee recipient to DEX Developer account */
-            await factory.setFeeTo(dexDeveloperAccount.address);
+            await factory.setFeeTo(exchangeDev.address);
 
-            /* Third deposit of liquidity into AAVE/DAI pool */
+            /* Second deposit of liquidity into AAVE/DAI pool */
             await aaveToken.transferFrom(
                 liquidityProvider.address,
                 tradingPairExchange.address,
@@ -437,12 +417,12 @@ describe("TradingPairExchange contract", ()=> {
             );
 
             /* Burn Liquidity Tokens */
-            await tradingPairExchange.burn(liquidityProvider.address);  
-
+            await tradingPairExchange.burn(liquidityProvider.address); 
+            
             /* Expectation */
-            const dexDeveloperBalance = await tradingPairExchange.balanceOf(dexDeveloperAccount.address);
-            const formattedDexDeveloperBalance = ethers.utils.formatUnits(dexDeveloperBalance);
-            expect(formattedDexDeveloperBalance).to.equal('0.322556671273615636');
+            const dexDeveloperAccountBalance = await tradingPairExchange.balanceOf(exchangeDev.address);
+            const formattedDexDeveloperAccountBalance = ethers.utils.formatUnits(dexDeveloperAccountBalance);
+            expect(formattedDexDeveloperAccountBalance).to.equal("0.322556671273615636");
         });
 
     });
