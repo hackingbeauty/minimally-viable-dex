@@ -138,6 +138,11 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
         emit Burn(msg.sender, amountASent, amountBSent, to);
     }
 
+    // this low-level function should be called from a contract which performs important safety checks
+    function exchange(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {
+        console.log('------ INSIDE LOW-LEVEL EXCHANGE FUNCTION ------');
+    }
+
     function approve(
         address spender,
         uint value

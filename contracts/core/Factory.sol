@@ -27,10 +27,9 @@ contract Factory is IFactory {
         require(getTradingPair[tokenA][tokenB] == address(0), 'DEX: TRADING_PAIR_EXISTS');
 
         bytes32 salt = keccak256(abi.encode(token0, token1));
-
         TradingPairExchange tpe = new TradingPairExchange{salt: salt}(); 
+        
         pair = address(tpe);
-
         ITradingPairExchange(pair).initialize(tokenA, tokenB);
         getTradingPair[tokenA][tokenB] = pair;
         getTradingPair[tokenB][tokenA] = pair;

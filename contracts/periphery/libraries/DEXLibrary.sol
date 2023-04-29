@@ -42,4 +42,31 @@ library DEXLibrary {
         require(reserveA > 0 && reserveB > 0, 'DEXLibrary: INSUFFICIENT LIQUIDITY');
         amountB = (amountA * reserveB)/reserveA;
     }
+
+    // given an output amount of an asset and pair reserves, returns a required input amount of the other asset
+    function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut) internal view returns (uint amountIn) {
+        require(amountOut > 0, 'DEXLibrary: INSUFFICIENT_OUTPUT_AMOUNT');
+        require(reserveIn > 0 && reserveOut > 0, 'DEXLibrary: INSUFFICIENT_LIQUIDITY');
+        uint numerator = reserveIn * amountOut * (1000);
+        
+        console.log('----- amountOut iz: -----', amountOut);
+        console.log('----- reserveIn iz: -----', reserveIn);
+        console.log('----- reserveOut iz: -----', reserveOut);
+
+        uint denominator = reserveOut - (amountOut * 997);
+        amountIn = (numerator / denominator) + (1);
+    }
+
+    // performs chained getAmountIn calculations on any number of pairs
+    function getAmountsIn(address factory, uint amountOut, address[] memory path) internal view returns (uint[] memory amounts) {
+        require(path.length >= 2, 'DEXLibrary: INVALID_PATH');
+        amounts = new uint[](path.length);
+        amounts[amounts.length - 1] = amountOut;
+        for (uint i = path.length - 1; i > 0; i--) {
+            console.log('---- getAmountsIn i', i);
+            console.log('---- getAmountsIn path[i]', path[i]);
+            (uint reserveIn, uint reserveOut) = getReserves(factory, path[i - 1], path[i]);
+            amounts[i - 1] = getAmountIn(amounts[i], reserveIn, reserveOut);
+        }
+    }
 }
