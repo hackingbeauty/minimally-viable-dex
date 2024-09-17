@@ -43,18 +43,37 @@ library DEXLibrary {
         amountB = (amountA * reserveB)/reserveA;
     }
 
+    // given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset
+    function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) internal pure returns (uint amountOut) {
+        require(amountIn > 0, 'UniswapV2Library: INSUFFICIENT_INPUT_AMOUNT');
+        require(reserveIn > 0 && reserveOut > 0, 'UniswapV2Library: INSUFFICIENT_LIQUIDITY');
+        uint amountInWithFee = amountIn * 997;
+        uint numerator = amountInWithFee * reserveOut;
+        uint denominator = (reserveIn * 1000) + amountInWithFee;
+        amountOut = numerator / denominator;
+    }
+
     // given an output amount of an asset and pair reserves, returns a required input amount of the other asset
     function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut) internal view returns (uint amountIn) {
         require(amountOut > 0, 'DEXLibrary: INSUFFICIENT_OUTPUT_AMOUNT');
         require(reserveIn > 0 && reserveOut > 0, 'DEXLibrary: INSUFFICIENT_LIQUIDITY');
-        uint numerator = reserveIn * amountOut * (1000);
-        
-        console.log('----- amountOut iz: -----', amountOut);
-        console.log('----- reserveIn iz: -----', reserveIn);
-        console.log('----- reserveOut iz: -----', reserveOut);
-
+        uint numerator = (reserveIn * amountOut) * (1000);
+        console.log('--- numerator iz: ---', numerator);
         uint denominator = reserveOut - (amountOut * 997);
+        console.log('--- denominator iz: ---', denominator);
+
         amountIn = (numerator / denominator) + (1);
+    }
+
+    // performs chained getAmountOut calculations on any number of pairs
+    function getAmountsOut(address factory, uint amountIn, address[] memory path) internal view returns (uint[] memory amounts) {
+        require(path.length >= 2, 'UniswapV2Library: INVALID_PATH');
+        amounts = new uint[](path.length);
+        amounts[0] = amountIn;
+        for (uint i; i < path.length - 1; i++) {
+            (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1]);
+            amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);
+        }
     }
 
     // performs chained getAmountIn calculations on any number of pairs
@@ -63,8 +82,8 @@ library DEXLibrary {
         amounts = new uint[](path.length);
         amounts[amounts.length - 1] = amountOut;
         for (uint i = path.length - 1; i > 0; i--) {
-            console.log('---- getAmountsIn i', i);
-            console.log('---- getAmountsIn path[i]', path[i]);
+            // console.log('---- getAmountsIn i', i);
+            // console.log('---- getAmountsIn path[i]', path[i]);
             (uint reserveIn, uint reserveOut) = getReserves(factory, path[i - 1], path[i]);
             amounts[i - 1] = getAmountIn(amounts[i], reserveIn, reserveOut);
         }

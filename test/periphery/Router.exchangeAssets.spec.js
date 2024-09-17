@@ -38,7 +38,6 @@ describe("Router contract", ()=> {
                 liquidityProvider,
                 router
             );
-            // console.log('--- deployedContracts ---', deployedContracts);
 
             /* Step 2 - Deploy Trading Pair Exchanges */
             const deployedExchanges = await deployExchanges(
@@ -46,8 +45,6 @@ describe("Router contract", ()=> {
                 deployedContracts,
                 depositAmounts
             );
-            // console.log('--- deployedExchanges ---', deployedExchanges);
-
             
             /* Step 3 - Calculate transaction deadline of 20 minutes */
             const currentTime = Math.floor(Date.now() / 1000); //divide by 1000 to get seconds
@@ -61,13 +58,10 @@ describe("Router contract", ()=> {
                 liquidityProvider
             });
 
-
-            
-
             /* Step 5 - Get array of token contracts to pass into Router */
             const path = getPath(deployedContracts);
             
-            console.log('---- path ----', path);
+            // console.log('---- path ----', path);
 
             const aaveToken = deployedContracts[0].contract;
             const balToken = deployedContracts[4].contract;
@@ -82,6 +76,7 @@ describe("Router contract", ()=> {
                 deadline
             }
         }
+
         it.only("should exchange exact tokens for tokens", async() => {
             // Arrange
             const { 
@@ -98,7 +93,7 @@ describe("Router contract", ()=> {
             const amountOutMin = ethers.utils.parseUnits('36', 18);
             
             // Act
-            await router.exchangeExactTokensForTokens(
+            await router.swapExactTokensForTokens(
                 amountIn,
                 amountOutMin,
                 path,
@@ -117,45 +112,43 @@ describe("Router contract", ()=> {
             expect(formattedTraderBalTokenBalance).to.equal("0");
         });
 
-        it("should exchange tokens for exact tokens", async() => {
-            // Arrange
-            const { 
-                path,
-                liquidityProvider,
-                deadline,
-                trader
-            } = await loadFixture(deployRouterFixture);
-
-            const amountIn = 0;
-            const amountOutMin = 0;
-
-            // Act
-            const { amountA, amountB } = await router.callStatic.exchangeTokensForExactTokens(
-                amountIn,
-                amountOutMin,
-                path,
-                liquidityProvider.address,
-                deadline
-            );
-
-            // Format balances
-            const updatedTraderTokenABalance = await aaveToken.balanceOf(trader.address)
-            const updatedTraderTokenBBalance = await daiToken.balanceOf(trader.address)
-            const formattedUpdatedTraderTokenABalance = ethers.utils.formatUnits(updatedTraderTokenABalance);
-            const formattedUpdatedTraderTokenBBalance = ethers.utils.formatUnits(updatedTraderTokenBBalance);
-
-            // Assert
-            // expect(trader) to have X amount of tokenA
-            // expect(trader) to have Y amount of tokenB
-            expect(formattedUpdatedTraderTokenABalance).to.equal("0");
-            expect(formattedUpdatedTraderTokenBBalance).to.equal("0");
-        });
-
     });
 
 });
 
+// it("should exchange tokens for exact tokens", async() => {
+//     // Arrange
+//     const { 
+//         path,
+//         liquidityProvider,
+//         deadline,
+//         trader
+//     } = await loadFixture(deployRouterFixture);
 
+//     const amountIn = 0;
+//     const amountOutMin = 0;
+
+//     // Act
+//     const { amountA, amountB } = await router.callStatic.exchangeTokensForExactTokens(
+//         amountIn,
+//         amountOutMin,
+//         path,
+//         liquidityProvider.address,
+//         deadline
+//     );
+
+//     // Format balances
+//     const updatedTraderTokenABalance = await aaveToken.balanceOf(trader.address)
+//     const updatedTraderTokenBBalance = await daiToken.balanceOf(trader.address)
+//     const formattedUpdatedTraderTokenABalance = ethers.utils.formatUnits(updatedTraderTokenABalance);
+//     const formattedUpdatedTraderTokenBBalance = ethers.utils.formatUnits(updatedTraderTokenBBalance);
+
+//     // Assert
+//     // expect(trader) to have X amount of tokenA
+//     // expect(trader) to have Y amount of tokenB
+//     expect(formattedUpdatedTraderTokenABalance).to.equal("0");
+//     expect(formattedUpdatedTraderTokenBBalance).to.equal("0");
+// });
 
 // it("should swapExactETHForTokens", async() => {
 //     // allows a trader to swap a precise amount of ETH

@@ -8,5 +8,5 @@ interface ITradingPairExchange {
     function burn(address to) external returns (uint amount0, uint amount1);
     function approve(address spender, uint value) external returns (bool);
     function transferFrom(address from, address to, uint value) external returns (bool);
-    function exchange(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;  
+    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;  
 }

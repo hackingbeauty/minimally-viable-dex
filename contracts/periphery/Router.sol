@@ -70,7 +70,6 @@ contract Router is IRouter {
         TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
         TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
 
-        console.log('---- IN ROUTER DEPOSITING LIQUIDITY ----');
         liquidity = ITradingPairExchange(pair).mint(to);
     }
 
@@ -94,14 +93,14 @@ contract Router is IRouter {
     }
 
     // ************ EXCHANGE ************
-    function _exchange(uint[] memory amounts, address[] memory path, address _to) internal virtual {
+    function _swap(uint[] memory amounts, address[] memory path, address _to) internal virtual {
         for (uint i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], path[i + 1]);
             (address token0,) = DEXLibrary.sortTokens(input, output);
             uint amountOut = amounts[i + 1];
             (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
             address to = i < path.length - 2 ? DEXLibrary.pairFor(factoryAddr, output, path[i + 2]) : _to;
-            ITradingPairExchange(DEXLibrary.pairFor(factoryAddr, input, output)).exchange(
+            ITradingPairExchange(DEXLibrary.pairFor(factoryAddr, input, output)).swap(
                 amount0Out,
                 amount1Out,
                 to,
@@ -112,19 +111,19 @@ contract Router is IRouter {
 
     // Allows a trader to specify the exact amount of token As a trader is willing to input,
     // and the minimum amount of token Bs a trader is willing to receive in return
-    function exchangeExactTokensForTokens(
+    function swapExactTokensForTokens(
         uint amountOut,
         uint amountInMax,
         address[] calldata path,
         address to,
         uint deadline
     ) external ensure(deadline) returns (uint[] memory amounts) {
-        console.log('----- INSIDE EXCHANGE EXACT TOKENS FOR TOKENS -----');
-        amounts = DEXLibrary.getAmountsIn(factoryAddr, amountOut, path);
-        console.log('-----------------------------------------');
-        console.log('----- amounts[0] -----', amounts[0]);
-        console.log('----- amountInMax -----', amountInMax);
-
+        amounts = DEXLibrary.getAmountsOut(factoryAddr, amountOut, path);
+        // console.log('----- amounts[0] ------', amounts[0]);
+        // console.log('----- amounts[1] ------', amounts[1]);
+        // console.log('----- amounts[2] ------', amounts[2]);
+        // console.log('----- amounts[3] ------', amounts[3]);
+        // console.log('----- amounts[4] ------', amounts[4]);
         require(amounts[0] <= amountInMax, 'DEXLibrary: EXCESSIVE_INPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
             path[0],
@@ -133,12 +132,12 @@ contract Router is IRouter {
             path[1]),
             amounts[0]
         );
-        _exchange(amounts, path, to);
+        _swap(amounts, path, to);
     }
 
     // Pass in maximum amount of token As a Trader is willing to pay
     // in exchange for an exact number of tokenBs (output tokens)
-    function exchangeTokensForExactTokens(
+    function swapTokensForExactTokens(
         uint amountOut,
         uint amountInMax,
         address[] calldata path,
@@ -154,7 +153,7 @@ contract Router is IRouter {
             path[1]),
             amounts[0]
         );
-        _exchange(amounts, path, to);
+        _swap(amounts, path, to);
     }
 
 }
