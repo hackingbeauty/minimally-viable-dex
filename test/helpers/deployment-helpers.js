@@ -12,16 +12,18 @@ async function deployERC20Contracts(tokenContracts, deployer, liquidityProvider,
         await tokenContract.deployed();
 
         /* Mint tokens for Liquidity Provider's account */
-        await tokenContract.mint(
+        const tx = await tokenContract.mint(
             liquidityProvider.address,
             ethers.utils.parseUnits('7000', 18)
         );
+        await tx.wait();
         
         /* Liquidity Provider approves Router to transfer tokens */
-        await tokenContract.connect(liquidityProvider).approve(
+        const tx2 =  await tokenContract.connect(liquidityProvider).approve(
             router.address,
             ethers.utils.parseUnits('7000', 18)
         );
+        await tx2.wait();
 
         return Object.assign({},
             {
@@ -40,7 +42,6 @@ async function deployExchanges(factory, contracts, depositAmounts) {
     const deployedExchanges = [];
 
     for (let i = 0; i < contracts.length-1; i++) {
-    // for (let i = contracts.length - 1; i > 0; i--) {
         deployedExchanges.push((async() => {
             const tokenA = contracts[i].address;
             const tokenASymbol = contracts[i].symbol
@@ -48,9 +49,11 @@ async function deployExchanges(factory, contracts, depositAmounts) {
             const tokenBSymbol = contracts[i+1].symbol;
             const tradingPair = `${tokenASymbol}:${tokenBSymbol}`;
 
-            await factory.createTradingPair(tokenA, tokenB);   
-            const depositAmount = depositAmounts.find((amount) => {
-                return amount.tradingPair === tradingPair;
+            const tx = await factory.createTradingPair(tokenA, tokenB);  
+            await tx.wait(); 
+ 
+            const depositAmount = depositAmounts.find((pair) => {
+                return pair.tradingPair === tradingPair;
             });
 
             const {
@@ -73,10 +76,8 @@ async function deployExchanges(factory, contracts, depositAmounts) {
             );
         })());
     }
-   
     return await Promise.all(deployedExchanges);
 }
-
 async function depositLiquidityIntoExchanges(config) {
     const { 
         deployedExchanges,
@@ -84,7 +85,6 @@ async function depositLiquidityIntoExchanges(config) {
         liquidityProvider,
         deadline
     } = config;
-    const liquidityDeposited = [];
 
     for (let i = 0; i < deployedExchanges.length; i++) {
         const {
@@ -95,23 +95,21 @@ async function depositLiquidityIntoExchanges(config) {
             amountAMin,
             amountBMin
         } = deployedExchanges[i];
-        liquidityDeposited.push((async() => {
 
-            const tx = await router.depositLiquidity(
-                tokenA,
-                tokenB,
-                ethers.utils.parseUnits(`${amountADesired}`, 18),
-                ethers.utils.parseUnits(`${amountBDesired}`, 18),
-                ethers.utils.parseUnits(`${amountAMin}`, 18),
-                ethers.utils.parseUnits(`${amountBMin}`, 18),
-                liquidityProvider.address,
-                deadline
-            );
-            await tx.wait();
-        })());
+        // console.log('----- deployedExchanges[i] ------', deployedExchanges[i]);
+
+        const tx = await router.depositLiquidity(
+            tokenA,
+            tokenB,
+            ethers.utils.parseUnits(`${amountADesired}`, 18),
+            ethers.utils.parseUnits(`${amountBDesired}`, 18),
+            ethers.utils.parseUnits(`${amountAMin}`, 18),
+            ethers.utils.parseUnits(`${amountBMin}`, 18),
+            liquidityProvider.address,
+            deadline
+        );
+        await tx.wait();
     }
-
-    await Promise.all(liquidityDeposited);
 }
 
 function getPath(deployedContracts) {

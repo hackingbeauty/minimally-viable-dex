@@ -28,7 +28,7 @@ const depositAmounts = [
     {   
         tradingPair: "AAVE:DAI",
         amountADesired: "5600",
-        amountAMin: "599",
+        amountAMin: "5599",
         amountBDesired: "100",
         amountBMin: "99"
     },
