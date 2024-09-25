@@ -34,6 +34,7 @@ library DEXLibrary {
         (address token0, ) = sortTokens(tokenA, tokenB);
         (uint reserve0, uint reserve1,) = ITradingPairExchange(pairFor(factory, tokenA, tokenB)).getReserves();
         console.log('---------------------------------------------------------------');
+        console.log('------ pairFor(factory, tokenA, tokenB) -------', pairFor(factory, tokenA, tokenB));
         (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
     }    
 
@@ -76,6 +77,7 @@ library DEXLibrary {
         require(path.length >= 2, 'DEXLibrary: INVALID_PATH');
         uint[] memory amounts = new uint[](path.length);
         amounts[0] = amountIn;
+        console.log('-------------------------- INSIDE GETAMOUNTSOUT() --------------------------');
         console.log('------ amountIn -----', amountIn);
         // console.log('------ path.length -----', path.length);
         // console.log('------ amounts.length -----', amounts.length);

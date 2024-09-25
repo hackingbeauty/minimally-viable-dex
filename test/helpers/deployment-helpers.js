@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
 async function deployERC20Contracts(tokenContracts, deployer, liquidityProvider, router) {
-    const deployedERC20Contracts = Promise.all(tokenContracts.map(async (item) => {
+    const deployedERC20Contracts = tokenContracts.map(async (item) => {
         const basicContract = await ethers.getContractFactory("ERC20Basic");
         const tokenContract = await basicContract.deploy(
             item.name,
@@ -33,25 +33,23 @@ async function deployERC20Contracts(tokenContracts, deployer, liquidityProvider,
                 "contract": tokenContract
             }
         );
-    }));
+    });
 
-    return deployedERC20Contracts;
+    return await Promise.all(deployedERC20Contracts);
 }
 
 async function deployExchanges(factory, contracts, depositAmounts) {
-    const deployedExchanges = [];
+    const deployedExchanges = contracts.map(async (contract, index) => {
+        const tokenA = contracts[index].address;
+        const tokenASymbol = contracts[index].symbol;
+        let tokenB, tokenBSymbol, tradingPair;
 
-    for (let i = 0; i < contracts.length-1; i++) {
-        deployedExchanges.push((async() => {
-            const tokenA = contracts[i].address;
-            const tokenASymbol = contracts[i].symbol
-            const tokenB = contracts[i+1].address;
-            const tokenBSymbol = contracts[i+1].symbol;
-            const tradingPair = `${tokenASymbol}:${tokenBSymbol}`;
+        if(index < contracts.length-1) {
+            tokenB = contracts[index+1].address;
+            tokenBSymbol = contracts[index+1].symbol;
+            tradingPair = `${tokenASymbol}:${tokenBSymbol}`;
 
-            const tx = await factory.createTradingPair(tokenA, tokenB);  
-            await tx.wait(); 
- 
+            const address = await factory.callStatic.createTradingPair(tokenA, tokenB); 
             const depositAmount = depositAmounts.find((pair) => {
                 return pair.tradingPair === tradingPair;
             });
@@ -65,6 +63,7 @@ async function deployExchanges(factory, contracts, depositAmounts) {
 
             return Object.assign({},
                 {
+                    address,
                     tradingPair,
                     tokenA,
                     tokenB,
@@ -74,8 +73,9 @@ async function deployExchanges(factory, contracts, depositAmounts) {
                     amountBMin
                 }
             );
-        })());
-    }
+        }
+    });
+    
     return await Promise.all(deployedExchanges);
 }
 async function depositLiquidityIntoExchanges(config) {
@@ -96,7 +96,7 @@ async function depositLiquidityIntoExchanges(config) {
             amountBMin
         } = deployedExchanges[i];
 
-        // console.log('----- deployedExchanges[i] ------', deployedExchanges[i]);
+        console.log('----- deployedExchanges[i] ------', deployedExchanges[i]);
 
         const tx = await router.depositLiquidity(
             tokenA,

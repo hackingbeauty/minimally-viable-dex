@@ -72,13 +72,10 @@ contract Router is IRouter {
         console.log('--------------- DEPOSIT LIQUIDITY ---------------');
         console.log('---- amountA ----', amountA);
         console.log('---- amountB ----', amountB);
-
-
-        liquidity = ITradingPairExchange(pair).mint(to);
-        
         (uint reservesA, uint reservesB,) = ITradingPairExchange(pair).getReserves();
         console.log('---- reservesA ----', reservesA);
         console.log('---- reservesB ----', reservesB);
+        liquidity = ITradingPairExchange(pair).mint(to);
     }
 
     function withdrawLiquidity(
