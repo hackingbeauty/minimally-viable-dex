@@ -70,12 +70,17 @@ contract Router is IRouter {
         TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
         TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
         console.log('--------------- DEPOSIT LIQUIDITY ---------------');
+        console.log('---- pair ----', pair);
+        console.log('---- tokenA ----', tokenA);
+        console.log('---- tokenB ----', tokenB);
         console.log('---- amountA ----', amountA);
         console.log('---- amountB ----', amountB);
+
+        liquidity = ITradingPairExchange(pair).mint(to);
+
         (uint reservesA, uint reservesB,) = ITradingPairExchange(pair).getReserves();
         console.log('---- reservesA ----', reservesA);
         console.log('---- reservesB ----', reservesB);
-        liquidity = ITradingPairExchange(pair).mint(to);
     }
 
     function withdrawLiquidity(
@@ -90,7 +95,6 @@ contract Router is IRouter {
         address pair = DEXLibrary.pairFor(factoryAddr, tokenA, tokenB); 
         ITradingPairExchange(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
         (uint amountASent, uint amountBSent) = ITradingPairExchange(pair).burn(to);
-        
         (address token0,) = DEXLibrary.sortTokens(tokenA, tokenB);
         (amountA, amountB) = tokenA == token0 ? (amountASent, amountBSent) : (amountBSent, amountASent);
         require(amountA >= amountAMin, 'DEX: INSUFFICIENT_A_AMOUNT');
@@ -123,8 +127,16 @@ contract Router is IRouter {
         address to,
         uint deadline
     ) external ensure(deadline) returns (uint[] memory amounts) {         //the various amounts that will be swapped out
-        console.log('---- amountIn iz: ----', amountIn);
         amounts = DEXLibrary.getAmountsOut(factoryAddr, amountIn, path);  //from each exchange along the path
+
+        console.log('----------------------------------------');
+        console.log('---- amounts[0] ----', amounts[0]);
+        console.log('---- amounts[1] ----', amounts[1]);
+        console.log('---- amounts[2] ----', amounts[2]);
+        console.log('---- amounts[3] ----', amounts[3]);
+        console.log('---- amounts[4] ----', amounts[4]);
+        console.log('---- amountOut ----', amountOutMin);
+
         require(amounts[amounts.length - 1] >= amountOutMin, 'DEX ROUTER: INSUFFICIENT_OUTPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, DEXLibrary.pairFor(factoryAddr, path[0], path[1]), amounts[0]

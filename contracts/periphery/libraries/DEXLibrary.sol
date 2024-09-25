@@ -33,8 +33,6 @@ library DEXLibrary {
     function getReserves(address factory, address tokenA, address tokenB) internal view returns (uint reserveA, uint reserveB) {
         (address token0, ) = sortTokens(tokenA, tokenB);
         (uint reserve0, uint reserve1,) = ITradingPairExchange(pairFor(factory, tokenA, tokenB)).getReserves();
-        console.log('---------------------------------------------------------------');
-        console.log('------ pairFor(factory, tokenA, tokenB) -------', pairFor(factory, tokenA, tokenB));
         (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
     }    
 
@@ -49,17 +47,9 @@ library DEXLibrary {
     function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) internal pure returns (uint amountOut) {
         require(amountIn > 0, 'DEXLibrary: INSUFFICIENT_INPUT_AMOUNT');
         require(reserveIn > 0 && reserveOut > 0, 'DEXLibrary: INSUFFICIENT_LIQUIDITY');
-        console.log('------- amountIn -------', amountIn);
-        console.log('------- reserveIn -------', reserveIn);
-        console.log('------- reserveOut -------', reserveOut);
-
         uint amountInWithFee = (amountIn * 997);
-        console.log('------- amountInWithFee -------', amountInWithFee);
-
         uint numerator = (amountInWithFee * reserveOut);
-        console.log('------- numerator -------', numerator);
         uint denominator = (reserveIn * 1000) + amountInWithFee;
-        console.log('------- denominator -------', denominator);
         amountOut = numerator / denominator;
     }
 
@@ -73,31 +63,14 @@ library DEXLibrary {
     }
 
     // performs chained getAmountOut calculations on any number of pairs
-    function getAmountsOut(address factory, uint amountIn, address[] memory path) internal view returns (uint[] memory) {
-        require(path.length >= 2, 'DEXLibrary: INVALID_PATH');
-        uint[] memory amounts = new uint[](path.length);
+    function getAmountsOut(address factory, uint amountIn, address[] memory path) internal view returns (uint[] memory amounts) {
+        require(path.length >= 2, 'UniswapV2Library: INVALID_PATH');
+        amounts = new uint[](path.length);
         amounts[0] = amountIn;
-        console.log('-------------------------- INSIDE GETAMOUNTSOUT() --------------------------');
-        console.log('------ amountIn -----', amountIn);
-        // console.log('------ path.length -----', path.length);
-        // console.log('------ amounts.length -----', amounts.length);
-        for (uint i; i < path.length; i++) {
-            if(i <= path.length-2 && i != 0) {
-                // console.log('----- I IS i <= path.length-2 -----', i);
-                (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1]);
-                amounts[i] = getAmountOut(amounts[i-1], reserveIn, reserveOut);
-    
-            }
-            // console.log('========= amounts[i] iz ========:', amounts[i]);
-            // console.log('========= i iz ========:', i);
+        for (uint i; i < path.length - 1; i++) {
+            (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1]);
+            amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);
         }
-        console.log('----------------------------------------');
-        console.log('---- amounts[0] ----', amounts[0]);
-        console.log('---- amounts[1] ----', amounts[1]);
-        console.log('---- amounts[2] ----', amounts[2]);
-        console.log('---- amounts[3] ----', amounts[3]);
-        console.log('---- amounts[4] ----', amounts[4]);
-        return amounts;
     }
 
     // performs chained getAmountIn calculations on any number of pairs

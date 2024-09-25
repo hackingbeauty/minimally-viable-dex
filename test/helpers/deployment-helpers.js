@@ -86,30 +86,62 @@ async function depositLiquidityIntoExchanges(config) {
         deadline
     } = config;
 
-    for (let i = 0; i < deployedExchanges.length; i++) {
-        const {
-            tokenA,
-            tokenB,
-            amountADesired,
-            amountBDesired,
-            amountAMin,
-            amountBMin
-        } = deployedExchanges[i];
+    console.log('----- deployedExchanges are --------', deployedExchanges);
 
-        console.log('----- deployedExchanges[i] ------', deployedExchanges[i]);
+    const deployedLiquidity = deployedExchanges.map(async(exchange, index) => {
+        if(index<deployedExchanges.length-1) {
+            console.log('---- exchange is ----', exchange);
 
-        const tx = await router.depositLiquidity(
-            tokenA,
-            tokenB,
-            ethers.utils.parseUnits(`${amountADesired}`, 18),
-            ethers.utils.parseUnits(`${amountBDesired}`, 18),
-            ethers.utils.parseUnits(`${amountAMin}`, 18),
-            ethers.utils.parseUnits(`${amountBMin}`, 18),
-            liquidityProvider.address,
-            deadline
-        );
-        await tx.wait();
-    }
+            const {
+                tokenA,
+                tokenB,
+                amountADesired,
+                amountBDesired,
+                amountAMin,
+                amountBMin
+            } = deployedExchanges[index];
+    
+            await new Promise(async (resolve, reject) => {
+                try {
+
+                    const tx = await router.depositLiquidity(
+                        tokenA,
+                        tokenB,
+                        ethers.utils.parseUnits(`${amountADesired}`, 18),
+                        ethers.utils.parseUnits(`${amountBDesired}`, 18),
+                        ethers.utils.parseUnits(`${amountAMin}`, 18),
+                        ethers.utils.parseUnits(`${amountBMin}`, 18),
+                        liquidityProvider.address,
+                        deadline
+                    );
+                    await tx.wait();
+
+                    resolve();
+                  } catch (e) {
+                    reject(e);
+                  }
+
+            });
+                
+
+            // await tx.wait();
+
+            return Object.assign({},
+                {
+                    tokenA,
+                    tokenB,
+                    amountADesired: ethers.utils.parseUnits(`${amountADesired}`, 18),
+                    amountBDesired: ethers.utils.parseUnits(`${amountBDesired}`, 18),
+                    amountAMin: ethers.utils.parseUnits(`${amountAMin}`, 18),
+                    amountBMin: ethers.utils.parseUnits(`${amountBMin}`, 18),
+                    liquidityProvider: liquidityProvider.address,
+                    deadline
+                }
+            );
+        }
+    });
+
+    return await Promise.all(deployedLiquidity);
 }
 
 function getPath(deployedContracts) {

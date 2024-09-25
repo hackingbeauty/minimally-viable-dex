@@ -35,6 +35,8 @@ describe("Router contract", ()=> {
                 liquidityProvider,
                 router
             );
+            
+            console.log('----------------- STEP 1 -----------------');
 
             /* Step 2 - Deploy Trading Pair Exchanges */
             const deployedExchanges = await deployExchanges(
@@ -42,23 +44,41 @@ describe("Router contract", ()=> {
                 deployedContracts,
                 depositAmounts
             );
-            
+
+            console.log('----------------- STEP 2 -----------------');
+
             /* Step 3 - Calculate transaction deadline of 20 minutes */
             const currentTime = Math.floor(Date.now() / 1000); //divide by 1000 to get seconds
             const deadline = currentTime + (20 * 60); //deadline is current time + 20 minutes
 
+            console.log('------------------- deployedExchanges -------------------', deployedExchanges);
+
+
+            console.log('----------------- STEP 3 -----------------');
+
             /* Step 4 - Deposit liquidity into Trading Pair Exchnages */
-            // await depositLiquidityIntoExchanges({
-            //     deployedExchanges,
-            //     router,
-            //     deadline,
-            //     liquidityProvider
-            // });
+            const depositedLiquidity = await depositLiquidityIntoExchanges({
+                deployedExchanges,
+                router,
+                deadline,
+                liquidityProvider
+            });
+
+            console.log('----------------- STEP 4 -----------------');
 
             /* Step 5 - Get array of token contracts to pass into Router */
             const path = getPath(deployedContracts); 
             const aaveToken = deployedContracts[0].contract;
             const balToken = deployedContracts[4].contract;
+
+
+            // Promise.allSettled([
+                
+            // ]).then({
+                
+            // });
+
+
 
             return {
                 path,
@@ -67,7 +87,8 @@ describe("Router contract", ()=> {
                 liquidityProvider,
                 trader,
                 router,
-                deadline
+                deadline,
+                depositedLiquidity
             }
         }
 
@@ -80,18 +101,25 @@ describe("Router contract", ()=> {
                 liquidityProvider,
                 trader,
                 router,
-                deadline
+                deadline,
+                depositedLiquidity
             } = await loadFixture(deployRouterFixture);
        
-            // // Act
-            // const swapTx = await router.swapExactTokensForTokens(
-            //     ethers.utils.parseUnits('135', 18), // amountIn - exact amount of tokens a trader wants to trade
-            //     ethers.utils.parseUnits('1', 18),   // amountOutMin  - the minimum amount of the output token they're willing to receive
-            //     path,
-            //     liquidityProvider.address,
-            //     deadline
-            // );
-            // await swapTx.wait();
+            // console.log('-------------------------------------------------------');
+            // console.log('-------- depositedLiquidity -------', depositedLiquidity);
+            // console.log('-------------------------------------------------------');
+
+            console.log('----------------- ABOUT TO SWAP TOKENS -----------------');
+
+            // Act
+            const swapTx = await router.swapExactTokensForTokens(
+                ethers.utils.parseUnits('135', 18), // amountIn - exact amount of tokens a trader wants to trade
+                ethers.utils.parseUnits('1', 18),   // amountOutMin  - the minimum amount of the output token they're willing to receive
+                path,
+                liquidityProvider.address,
+                deadline
+            );
+            await swapTx.wait();
 
             // // Assert
             // const aaveTokenBalanceAfterTrade = ethers.utils.formatUnits(await aaveToken.balanceOf(trader.address));

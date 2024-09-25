@@ -27,31 +27,31 @@ const tokenContracts = [
 const depositAmounts = [
     {   
         tradingPair: "AAVE:DAI",
-        amountADesired: "5600",
-        amountAMin: "5599",
+        amountADesired: "1660",
+        amountAMin: "1659",
         amountBDesired: "100",
         amountBMin: "99"
     },
     {   
         tradingPair: "DAI:USDC",
-        amountADesired: "100",
-        amountAMin: "99",
+        amountADesired: "1000",
+        amountAMin: "999",
         amountBDesired: "100",
         amountBMin: "99"
     },
     {   
         tradingPair: "USDC:THETA",
-        amountADesired: "100",
-        amountAMin: "99",
-        amountBDesired: "900",
-        amountBMin: "899"
+        amountADesired: "1000",
+        amountAMin: "999",
+        amountBDesired: "1000",
+        amountBMin: "999"
     },
     {   
         tradingPair: "THETA:BAL",
-        amountADesired: "900",
-        amountAMin: "899",
-        amountBDesired: "600",
-        amountBMin: "599"
+        amountADesired: "1000",
+        amountAMin: "999",
+        amountBDesired: "2000",
+        amountBMin: "1999"
     }
 ];
 
