@@ -36,21 +36,21 @@ const depositAmounts = [
         tradingPair: "DAI:USDC",
         amountADesired: "1000",
         amountAMin: "999",
-        amountBDesired: "200",
+        amountBDesired: "100",
         amountBMin: "99"
     },
     {   
         tradingPair: "USDC:THETA",
-        amountADesired: "2000",
+        amountADesired: "1000",
         amountAMin: "999",
-        amountBDesired: "300",
+        amountBDesired: "1000",
         amountBMin: "999"
     },
     {   
         tradingPair: "THETA:BAL",
-        amountADesired: "4000",
+        amountADesired: "1000",
         amountAMin: "999",
-        amountBDesired: "500",
+        amountBDesired: "2000",
         amountBMin: "1999"
     }
 ];
