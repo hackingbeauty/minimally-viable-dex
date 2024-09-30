@@ -5,6 +5,8 @@ import '../../core/interfaces/ITradingPairExchange.sol';
 import '../../core/TradingPairExchange.sol';
 import '../../core/interfaces/IFactory.sol';
 
+import '../../core/libraries/Math.sol';
+
 library DEXLibrary {
 
     // returns sorted token addresses, used to handle return values from pairs sorted in this order
@@ -47,10 +49,26 @@ library DEXLibrary {
     function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) internal pure returns (uint amountOut) {
         require(amountIn > 0, 'DEXLibrary: INSUFFICIENT_INPUT_AMOUNT');
         require(reserveIn > 0 && reserveOut > 0, 'DEXLibrary: INSUFFICIENT_LIQUIDITY');
-        uint amountInWithFee = (amountIn * 997);
-        uint numerator = (amountInWithFee * reserveOut);
-        uint denominator = (reserveIn * 1000) + amountInWithFee;
-        amountOut = numerator / denominator;
+        uint amountInWithFee = Math.mul(amountIn, 997);
+        uint numerator = Math.mul(amountInWithFee, reserveOut);
+        uint denominator = Math.mul(reserveIn, 1000) + amountInWithFee;
+        
+
+
+        console.log('------------------------------------------------');
+        console.log('---- amountIn ----', amountIn);
+        console.log('---- amountInWithFee ----', amountInWithFee);
+        console.log('---- numerator ----', numerator);
+        console.log('---- denominator ----', denominator);
+        console.log('------------------------------------------------');
+
+        
+        
+        amountOut = Math.div(numerator, denominator);
+
+
+        // uint amountInWithFee = (amountIn * 997);
+        // amountOut = Math.mul(amountInWithFee, reserveOut);
     }
 
     // given an output amount of an asset and pair reserves, returns a required input amount of the other asset
@@ -67,8 +85,22 @@ library DEXLibrary {
         require(path.length >= 2, 'UniswapV2Library: INVALID_PATH');
         amounts = new uint[](path.length);
         amounts[0] = amountIn;
+
+        console.log('----------------------- path1[0] is -----------------------', path[0]);
+        console.log('----------------------- path1[0] is -----------------------', path[1]);
+        console.log('----------------------- path1[0] is -----------------------', path[2]);
+        console.log('----------------------- path1[0] is -----------------------', path[3]);
+        console.log('----------------------- path1[0] is -----------------------', path[4]);
+
         for (uint i; i < path.length - 1; i++) {
             (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1]);
+            
+
+            
+            console.log('----------------------------------------');
+            console.log('---- getAmountsOut: reserveIn ----', reserveIn);
+            console.log('---- getAmountsOut: reserveOut ----', reserveOut);
+
             amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);
         }
     }

@@ -30,4 +30,13 @@ library Math {
             revert('overflow/underflow');
         }
     }
+
+    function div(uint256 a, uint256 b) internal pure returns(uint256 quotient) {
+        assembly { quotient := div(a,b) }
+        if(quotient <= type(uint256).max && quotient >= 0) {
+            return quotient;
+        } else {
+            revert('overflow/underflow');
+        }
+    }
 }

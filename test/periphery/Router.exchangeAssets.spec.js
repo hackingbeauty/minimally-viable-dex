@@ -51,8 +51,6 @@ describe("Router contract", ()=> {
             const currentTime = Math.floor(Date.now() / 1000); //divide by 1000 to get seconds
             const deadline = currentTime + (20 * 60); //deadline is current time + 20 minutes
 
-            console.log('------------------- deployedExchanges -------------------', deployedExchanges);
-
 
             console.log('----------------- STEP 3 -----------------');
 
@@ -87,8 +85,8 @@ describe("Router contract", ()=> {
                 liquidityProvider,
                 trader,
                 router,
-                deadline,
-                depositedLiquidity
+                deadline
+                // depositedLiquidity
             }
         }
 
@@ -108,8 +106,6 @@ describe("Router contract", ()=> {
             // console.log('-------------------------------------------------------');
             // console.log('-------- depositedLiquidity -------', depositedLiquidity);
             // console.log('-------------------------------------------------------');
-
-            console.log('----------------- ABOUT TO SWAP TOKENS -----------------');
 
             // Act
             const swapTx = await router.swapExactTokensForTokens(

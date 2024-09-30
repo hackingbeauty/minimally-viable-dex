@@ -103,6 +103,12 @@ contract Router is IRouter {
 
     // ************ EXCHANGE ************
     function _swap(uint[] memory amounts, address[] memory path, address _to) internal virtual {
+        console.log('----------------------- path[0] is -----------------------', path[0]);
+        console.log('----------------------- path[0] is -----------------------', path[1]);
+        console.log('----------------------- path[0] is -----------------------', path[2]);
+        console.log('----------------------- path[0] is -----------------------', path[3]);
+        console.log('----------------------- path[0] is -----------------------', path[4]);
+
         for (uint i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], path[i + 1]);
             (address token0,) = DEXLibrary.sortTokens(input, output);
