@@ -141,7 +141,7 @@ contract Router is IRouter {
         console.log('---- amounts[2] ----', amounts[2]);
         console.log('---- amounts[3] ----', amounts[3]);
         console.log('---- amounts[4] ----', amounts[4]);
-        console.log('---- amountOut ----', amountOutMin);
+        console.log('---- amountOutMin ----', amountOutMin);
 
         require(amounts[amounts.length - 1] >= amountOutMin, 'DEX ROUTER: INSUFFICIENT_OUTPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
