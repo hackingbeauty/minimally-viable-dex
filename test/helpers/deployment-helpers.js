@@ -11,8 +11,6 @@ async function deployERC20Contracts(tokenContracts, deployer, liquidityProvider,
     const baseContract = await ethers.getContractFactory("ERC20Basic");
     const deployedERC20Contracts = [];
 
-    console.log('--------------------------------------------------------------');
-
     const aaveTokenContract = await baseContract.deploy(
         aaveToken.name,
         aaveToken.symbol,
@@ -41,8 +39,6 @@ async function deployERC20Contracts(tokenContracts, deployer, liquidityProvider,
         "address": aaveTokenContract.address,
         "contract": aaveTokenContract
     });
-
-    // console.log('--------------------------------------------------------------');
 
     const daiTokenContract = await baseContract.deploy(
         daiToken.name,
@@ -73,8 +69,6 @@ async function deployERC20Contracts(tokenContracts, deployer, liquidityProvider,
         "contract": daiTokenContract
     });
 
-    console.log('--------------------------------------------------------------');
-
     const usdcTokenContract = await baseContract.deploy(
         usdcToken.name,
         usdcToken.symbol,
@@ -103,8 +97,6 @@ async function deployERC20Contracts(tokenContracts, deployer, liquidityProvider,
         "address": usdcTokenContract.address,
         "contract": usdcTokenContract
     });
-
-    console.log('--------------------------------------------------------------');
 
     const thetaTokenContract = await baseContract.deploy(
         thetaToken.name,
@@ -135,8 +127,6 @@ async function deployERC20Contracts(tokenContracts, deployer, liquidityProvider,
         "contract": thetaTokenContract
     });
 
-    console.log('--------------------------------------------------------------');
-
     const balTokenContract = await baseContract.deploy(
         balToken.name,
         balToken.symbol,
@@ -165,9 +155,6 @@ async function deployERC20Contracts(tokenContracts, deployer, liquidityProvider,
         "address": balTokenContract.address,
         "contract": balTokenContract
     });
-
-    console.log('--------------------------------------------------------------');
-
 
     // const deployedERC20Contracts = tokenContracts.map(async (item, index) => {
     //     console.log('-------- tokenContracts[item] --------', tokenContracts[index]);
@@ -298,13 +285,6 @@ async function depositLiquidityIntoExchanges(config) {
     const usdcThetaExchange = deployedExchanges[2];
     const thetaBalExchange = deployedExchanges[3];
 
-
-    console.log('-------------- aaveDaiExchange --------------', aaveDaiExchange);
-    console.log('-------------- daiUsdcExchange --------------', daiUsdcExchange);
-    console.log('-------------- usdcThetaExchange --------------', usdcThetaExchange);
-    console.log('-------------- thetaBalExchange --------------', thetaBalExchange);
-
-
     const tx1 = await router.depositLiquidity(
         aaveDaiExchange.tokenA,
         aaveDaiExchange.tokenB,
@@ -352,6 +332,54 @@ async function depositLiquidityIntoExchanges(config) {
         deadline    
     );
     await tx4.wait();
+
+    // const tx5 = await router.depositLiquidity(
+    //     aaveDaiExchange.tokenA,
+    //     aaveDaiExchange.tokenB,
+    //     ethers.utils.parseUnits(`${aaveDaiExchange.amountADesired}`, 18),
+    //     ethers.utils.parseUnits(`${aaveDaiExchange.amountBDesired}`, 18),
+    //     ethers.utils.parseUnits(`${aaveDaiExchange.amountAMin}`, 18),
+    //     ethers.utils.parseUnits(`${aaveDaiExchange.amountBMin}`, 18),
+    //     liquidityProvider.address,
+    //     deadline    
+    // );
+    // await tx5.wait();
+
+    // const tx6 = await router.depositLiquidity(
+    //     daiUsdcExchange.tokenA,
+    //     daiUsdcExchange.tokenB,
+    //     ethers.utils.parseUnits(`${daiUsdcExchange.amountADesired}`, 18),
+    //     ethers.utils.parseUnits(`${daiUsdcExchange.amountBDesired}`, 18),
+    //     ethers.utils.parseUnits(`${daiUsdcExchange.amountAMin}`, 18),
+    //     ethers.utils.parseUnits(`${daiUsdcExchange.amountBMin}`, 18),
+    //     liquidityProvider.address,
+    //     deadline    
+    // );
+    // await tx6.wait();
+
+    // const tx7 = await router.depositLiquidity(
+    //     usdcThetaExchange.tokenA,
+    //     usdcThetaExchange.tokenB,
+    //     ethers.utils.parseUnits(`${usdcThetaExchange.amountADesired}`, 18),
+    //     ethers.utils.parseUnits(`${usdcThetaExchange.amountBDesired}`, 18),
+    //     ethers.utils.parseUnits(`${usdcThetaExchange.amountAMin}`, 18),
+    //     ethers.utils.parseUnits(`${usdcThetaExchange.amountBMin}`, 18),
+    //     liquidityProvider.address,
+    //     deadline    
+    // );
+    // await tx7.wait();
+
+    // const tx8 = await router.depositLiquidity(
+    //     thetaBalExchange.tokenA,
+    //     thetaBalExchange.tokenB,
+    //     ethers.utils.parseUnits(`${thetaBalExchange.amountADesired}`, 18),
+    //     ethers.utils.parseUnits(`${thetaBalExchange.amountBDesired}`, 18),
+    //     ethers.utils.parseUnits(`${thetaBalExchange.amountAMin}`, 18),
+    //     ethers.utils.parseUnits(`${thetaBalExchange.amountBMin}`, 18),
+    //     liquidityProvider.address,
+    //     deadline    
+    // );
+    // await tx8.wait();
 
     // const {
     //     tokenA,

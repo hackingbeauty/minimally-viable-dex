@@ -151,71 +151,110 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
     }
 
     // this low-level function should be called from a contract which performs important safety checks
-    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {
-        require(amount0Out > 0 || amount1Out > 0, 'DEX: INSUFFICIENT_OUTPUT_AMOUNT');
-        (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
-        require(amount0Out < _reserve0 && amount1Out < _reserve1, 'DEX: INSUFFICIENT_LIQUIDITY');
-
-        uint balance0;
-        uint balance1;
-        { // scope for _token{0,1}, avoids stack too deep errors
-        address _tokenA = tokenA;
-        address _tokenB = tokenB;
-        require(to != _tokenA && to != _tokenB, 'DEX: INVALID_TO');
-        if (amount0Out > 0) _safeTransfer(_tokenA, to, amount0Out); // optimistically transfer tokens
-        if (amount1Out > 0) _safeTransfer(_tokenB, to, amount1Out); // optimistically transfer tokens
-        // if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
-        balance0 = IERC20(_tokenA).balanceOf(address(this));
-        balance1 = IERC20(_tokenB).balanceOf(address(this));
-        }
-        uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
-        uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
-
-        require(amount0In > 0 || amount1In > 0, 'DEX: INSUFFICIENT_INPUT_AMOUNT');
-        { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-        uint balance0Adjusted = (balance0 * 1000) - (amount0In * 3); //subtracting the 0.3% trader fee from the balance
-        uint balance1Adjusted = (balance1 * 1000) - (amount1In * 3); //substracting the 0.3% trader fee from the balance
-
-        // console.log('---- Math.mul(balance0Adjusted, balance1Adjusted) ----',Math.mul(balance0Adjusted, balance1Adjusted));
-        // console.log('---- uint(Math.mul(_reserve0, _reserve1)) * (1000**2) ----',uint(Math.mul(_reserve0, _reserve1)) * (1000**2));
-        require(Math.mul(balance0Adjusted, balance1Adjusted) >= uint(Math.mul(_reserve0, _reserve1)) * (1000**2), 'DEX: K');
-        }
-
-        _update(balance0, balance1);
-        emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
-    }
-
-
-    // this low-level function should be called from a contract which performs important safety checks
     // function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {
-    //     require(amount0Out > 0 || amount1Out > 0, 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT');
+    //     require(amount0Out > 0 || amount1Out > 0, 'DEX: INSUFFICIENT_OUTPUT_AMOUNT');
     //     (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
-    //     require(amount0Out < _reserve0 && amount1Out < _reserve1, 'UniswapV2: INSUFFICIENT_LIQUIDITY');
+    //     require(amount0Out < _reserve0 && amount1Out < _reserve1, 'DEX: INSUFFICIENT_LIQUIDITY');
 
     //     uint balance0;
     //     uint balance1;
     //     { // scope for _token{0,1}, avoids stack too deep errors
     //     address _tokenA = tokenA;
     //     address _tokenB = tokenB;
-    //     require(to != _tokenA && to != _tokenB, 'UniswapV2: INVALID_TO');
+    //     require(to != _tokenA && to != _tokenB, 'DEX: INVALID_TO');
     //     if (amount0Out > 0) _safeTransfer(_tokenA, to, amount0Out); // optimistically transfer tokens
     //     if (amount1Out > 0) _safeTransfer(_tokenB, to, amount1Out); // optimistically transfer tokens
-    //     if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
+    //     // if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
     //     balance0 = IERC20(_tokenA).balanceOf(address(this));
     //     balance1 = IERC20(_tokenB).balanceOf(address(this));
     //     }
     //     uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
     //     uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
-    //     require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
+
+    //     require(amount0In > 0 || amount1In > 0, 'DEX: INSUFFICIENT_INPUT_AMOUNT');
     //     { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-    //     uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
-    //     uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));
-    //     require(balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'UniswapV2: K');
+    //     uint balance0Adjusted = (balance0 * 1000) - (amount0In * 3); //subtracting the 0.3% trader fee from the balance
+    //     uint balance1Adjusted = (balance1 * 1000) - (amount1In * 3); //substracting the 0.3% trader fee from the balance
+
+    //     console.log('---- Math.mul(balance0Adjusted, balance1Adjusted) ----',Math.mul(balance0Adjusted, balance1Adjusted));
+    //     console.log('---- uint(Math.mul(_reserve0, _reserve1)) * (1000**2) ----',uint(Math.mul(_reserve0, _reserve1)) * (1000**2));
+    //     console.log('---- Math.mul(balance0Adjusted, balance1Adjusted) >= uint(Math.mul(_reserve0, _reserve1)) * (1000**2) ----', Math.mul(balance0Adjusted, balance1Adjusted) >= uint(Math.mul(_reserve0, _reserve1)) * (1000**2));
+
+    //     require(Math.mul(balance0Adjusted, balance1Adjusted) >= uint(Math.mul(_reserve0, _reserve1)) * (1000**2), 'DEX: K');
     //     }
 
     //     _update(balance0, balance1);
     //     emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
     // }
+
+
+    // this low-level function should be called from a contract which performs important safety checks
+    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {
+        require(amount0Out > 0 || amount1Out > 0, 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT');
+        (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
+        require(amount0Out < _reserve0 && amount1Out < _reserve1, 'UniswapV2: INSUFFICIENT_LIQUIDITY');
+
+        uint balance0;
+        uint balance1;
+        { // scope for _token{0,1}, avoids stack too deep errors
+        address _tokenA = tokenA;
+        address _tokenB = tokenB;
+        require(to != _tokenA && to != _tokenB, 'UniswapV2: INVALID_TO');
+        if (amount0Out > 0) _safeTransfer(_tokenA, to, amount0Out); // optimistically transfer tokens
+        if (amount1Out > 0) _safeTransfer(_tokenB, to, amount1Out); // optimistically transfer tokens
+        if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
+        balance0 = IERC20(_tokenA).balanceOf(address(this));
+        balance1 = IERC20(_tokenB).balanceOf(address(this));
+        }
+        uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
+        uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
+        console.log('------------------- START CALCULATION ------------------------');
+
+        console.log('------------------- BALANCE0 ------------------------');
+
+        console.log('---- balance0 ----', balance0);
+        console.log('---- _reserve0 ----', _reserve0);
+        console.log('---- amount0Out ----', amount0Out);
+        console.log('---- balance0 > _reserve0 - amount0Out ----', balance0 > _reserve0 - amount0Out);
+        console.log('---- amount0In ----', amount0In);
+
+        console.log('------------------- BALANCE1 ------------------------');
+
+        console.log('---- balance1 ----', balance1);
+        console.log('---- _reserve1 ----', _reserve1);
+        console.log('---- amount1Out ----', amount1Out);
+        console.log('---- balance1 > _reserve1 - amount1Out ----', balance1 > _reserve1 - amount1Out);
+        console.log('---- amount1In ----', amount1In);
+
+        console.log('------------------- END CALCULATION ------------------------');
+
+        require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
+        { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
+        uint balance0Adjusted = (balance0 * 1000) - (amount0In * 3);
+        uint balance1Adjusted = (balance1 * 1000) - (amount1In * 3);
+
+
+        console.log('---- Math.mul(balance0Adjusted, balance1Adjusted) ----',Math.mul(balance0Adjusted, balance1Adjusted));
+        console.log('---- uint(Math.mul(_reserve0, _reserve1)) * (1000**2) ----',uint(Math.mul(_reserve0, _reserve1)) * (1000**2));
+        console.log('---- Math.mul(balance0Adjusted, balance1Adjusted) >= uint(Math.mul(_reserve0, _reserve1)) * (1000**2) ----', Math.mul(balance0Adjusted, balance1Adjusted) >= uint(Math.mul(_reserve0, _reserve1)) * (1000**2));
+        // console.log('---- Difference ----',(balance0Adjusted * balance1Adjusted) - ((uint(_reserve0) * _reserve1) * (1000**2)));
+        console.log('-------------------------------------------');
+
+        uint updatedConstantProductK;
+        uint previousConstantProductK;
+
+        unchecked {
+            updatedConstantProductK = balance0Adjusted * balance1Adjusted;
+            previousConstantProductK =(uint(_reserve0) * _reserve1) * (1000**2);
+        }
+
+
+        require(updatedConstantProductK >= previousConstantProductK, 'UniswapV2: K');
+        }
+
+        _update(balance0, balance1);
+        emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
+    }
 
     function approve(
         address spender,

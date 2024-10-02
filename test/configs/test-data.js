@@ -34,8 +34,8 @@ const depositAmounts = [
     },
     {   
         tradingPair: "DAI:USDC",
-        amountADesired: "1000",
-        amountAMin: "999",
+        amountADesired: "100",
+        amountAMin: "99",
         amountBDesired: "100",
         amountBMin: "99"
     },
@@ -43,8 +43,8 @@ const depositAmounts = [
         tradingPair: "USDC:THETA",
         amountADesired: "1000",
         amountAMin: "999",
-        amountBDesired: "1000",
-        amountBMin: "999"
+        amountBDesired: "2000",
+        amountBMin: "1999"
     },
     {   
         tradingPair: "THETA:BAL",

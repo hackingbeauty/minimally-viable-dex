@@ -69,18 +69,7 @@ contract Router is IRouter {
         address pair = DEXLibrary.pairFor(factoryAddr, tokenA, tokenB);
         TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
         TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
-        console.log('--------------- DEPOSIT LIQUIDITY ---------------');
-        console.log('---- pair ----', pair);
-        console.log('---- tokenA ----', tokenA);
-        console.log('---- tokenB ----', tokenB);
-        console.log('---- amountA ----', amountA);
-        console.log('---- amountB ----', amountB);
-
         liquidity = ITradingPairExchange(pair).mint(to);
-
-        (uint reservesA, uint reservesB,) = ITradingPairExchange(pair).getReserves();
-        console.log('---- reservesA ----', reservesA);
-        console.log('---- reservesB ----', reservesB);
     }
 
     function withdrawLiquidity(
@@ -103,12 +92,6 @@ contract Router is IRouter {
 
     // ************ EXCHANGE ************
     function _swap(uint[] memory amounts, address[] memory path, address _to) internal virtual {
-        console.log('----------------------- path[0] is -----------------------', path[0]);
-        console.log('----------------------- path[0] is -----------------------', path[1]);
-        console.log('----------------------- path[0] is -----------------------', path[2]);
-        console.log('----------------------- path[0] is -----------------------', path[3]);
-        console.log('----------------------- path[0] is -----------------------', path[4]);
-
         for (uint i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], path[i + 1]);
             (address token0,) = DEXLibrary.sortTokens(input, output);
@@ -141,6 +124,7 @@ contract Router is IRouter {
         console.log('---- amounts[2] ----', amounts[2]);
         console.log('---- amounts[3] ----', amounts[3]);
         console.log('---- amounts[4] ----', amounts[4]);
+        console.log('---- amountIn ----', amountIn);
         console.log('---- amountOutMin ----', amountOutMin);
 
         require(amounts[amounts.length - 1] >= amountOutMin, 'DEX ROUTER: INSUFFICIENT_OUTPUT_AMOUNT');
