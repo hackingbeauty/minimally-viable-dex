@@ -208,37 +208,36 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
         }
         uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
         uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
-        console.log('------------------- START CALCULATION ------------------------');
 
-        console.log('------------------- BALANCE0 ------------------------');
-
-        console.log('---- balance0 ----', balance0);
-        console.log('---- _reserve0 ----', _reserve0);
-        console.log('---- amount0Out ----', amount0Out);
-        console.log('---- balance0 > _reserve0 - amount0Out ----', balance0 > _reserve0 - amount0Out);
+        console.log('--------------------------------------------------------------------------------------');
         console.log('---- amount0In ----', amount0In);
-
-        console.log('------------------- BALANCE1 ------------------------');
-
-        console.log('---- balance1 ----', balance1);
-        console.log('---- _reserve1 ----', _reserve1);
-        console.log('---- amount1Out ----', amount1Out);
-        console.log('---- balance1 > _reserve1 - amount1Out ----', balance1 > _reserve1 - amount1Out);
         console.log('---- amount1In ----', amount1In);
+        console.log('---- amount0Out ----', amount0Out);
+        console.log('---- amount1Out ----', amount1Out);
+        console.log('------');
+        console.log('balance0',balance0);
+        console.log('_reserve0',_reserve0);
+        console.log('amount0Out',amount0Out);
+        console.log(' balance0 > _reserve0 - amount0Out ', balance0 > _reserve0 - amount0Out);
+        console.log(' _reserve0 - amount0Out ', _reserve0 - amount0Out);
 
-        console.log('------------------- END CALCULATION ------------------------');
+        console.log('------');
+
+        console.log('balance1',balance1);
+        console.log('_reserve1',_reserve1);
+        console.log('amount1Out',amount1Out);
+        console.log(' balance1 > _reserve1 - amount1Out ', balance1 > _reserve1 - amount1Out);
+        console.log(' _reserve1 - amount1Out ', _reserve1 - amount1Out);
+
+        console.log('------');
+
+        console.log('--------------------------------------------------------------------------------------');
 
         require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
         { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
         uint balance0Adjusted = (balance0 * 1000) - (amount0In * 3);
         uint balance1Adjusted = (balance1 * 1000) - (amount1In * 3);
 
-
-        console.log('---- Math.mul(balance0Adjusted, balance1Adjusted) ----',Math.mul(balance0Adjusted, balance1Adjusted));
-        console.log('---- uint(Math.mul(_reserve0, _reserve1)) * (1000**2) ----',uint(Math.mul(_reserve0, _reserve1)) * (1000**2));
-        console.log('---- Math.mul(balance0Adjusted, balance1Adjusted) >= uint(Math.mul(_reserve0, _reserve1)) * (1000**2) ----', Math.mul(balance0Adjusted, balance1Adjusted) >= uint(Math.mul(_reserve0, _reserve1)) * (1000**2));
-        // console.log('---- Difference ----',(balance0Adjusted * balance1Adjusted) - ((uint(_reserve0) * _reserve1) * (1000**2)));
-        console.log('-------------------------------------------');
 
         uint updatedConstantProductK;
         uint previousConstantProductK;

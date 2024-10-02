@@ -58,7 +58,7 @@ describe("Router contract", ()=> {
             /* Step 5 - Get array of token contracts to pass into Router */
             const path = getPath(deployedContracts); 
             const aaveToken = deployedContracts[0].contract;
-            const balToken = deployedContracts[4].contract;
+            const balToken = deployedContracts[1].contract;
 
             return {
                 path,

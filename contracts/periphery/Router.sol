@@ -97,6 +97,8 @@ contract Router is IRouter {
             (address token0,) = DEXLibrary.sortTokens(input, output);
             uint amountOut = amounts[i + 1];
             (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
+            console.log('_swap: amount0Out', amount0Out);
+            console.log('_swap amount1Out', amount1Out);
             address to = i < path.length - 2 ? DEXLibrary.pairFor(factoryAddr, output, path[i + 2]) : _to;
             ITradingPairExchange(DEXLibrary.pairFor(factoryAddr, input, output)).swap(
                 amount0Out,
@@ -122,8 +124,8 @@ contract Router is IRouter {
         console.log('---- amounts[0] ----', amounts[0]);
         console.log('---- amounts[1] ----', amounts[1]);
         console.log('---- amounts[2] ----', amounts[2]);
-        console.log('---- amounts[3] ----', amounts[3]);
-        console.log('---- amounts[4] ----', amounts[4]);
+        // console.log('---- amounts[3] ----', amounts[3]);
+        // console.log('---- amounts[4] ----', amounts[4]);
         console.log('---- amountIn ----', amountIn);
         console.log('---- amountOutMin ----', amountOutMin);
 
