@@ -50,23 +50,7 @@ library DEXLibrary {
         uint amountInWithFee = amountIn * 997;
         uint numerator = amountInWithFee * reserveOut;
         uint denominator = (reserveIn * 1000) + amountInWithFee;
-        
-
-
-        // console.log('------------------------------------------------');
-        // console.log('---- amountIn ----', amountIn);
-        // console.log('---- amountInWithFee ----', amountInWithFee);
-        // console.log('---- numerator ----', numerator);
-        // console.log('---- denominator ----', denominator);
-        // console.log('------------------------------------------------');
-
-        
-        
         amountOut = Math.div(numerator, denominator);
-
-
-        // uint amountInWithFee = (amountIn * 997);
-        // amountOut = Math.mul(amountInWithFee, reserveOut);
     }
 
     // given an output amount of an asset and pair reserves, returns a required input amount of the other asset
@@ -83,13 +67,19 @@ library DEXLibrary {
         require(path.length >= 2, 'UniswapV2Library: INVALID_PATH');
         amounts = new uint[](path.length);
         amounts[0] = amountIn;
+        console.log('------ path[0] ------', path[0]);
+        console.log('------ path[1] ------', path[1]);
+        console.log('------ path[2] ------', path[2]);
+
         for (uint i; i < path.length - 1; i++) {
             (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1]);
-            console.log('----------------------------------------');
-            console.log('---- getAmountsOut: reserveIn ----', reserveIn);
-            console.log('---- getAmountsOut: reserveOut ----', reserveOut);
             amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);
         }
+
+        console.log('------ amounts[0] ------', amounts[0]);
+        console.log('------ amounts[1] ------', amounts[1]);
+        console.log('------ amounts[2] ------', amounts[2]);
+
     }
 
     // performs chained getAmountIn calculations on any number of pairs

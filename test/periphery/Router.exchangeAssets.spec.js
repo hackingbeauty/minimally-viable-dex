@@ -29,12 +29,13 @@ describe("Router contract", ()=> {
             const router = await deployedRouter.connect(liquidityProvider);
 
             /* Step 1 - Deploy ERC20 token contracts */
-            const deployedContracts = await deployERC20Contracts(
+            const deployedContracts = await deployERC20Contracts({
                 tokenContracts,
                 deployer,
                 liquidityProvider,
-                router
-            );
+                router,
+                trader
+            });
             
             /* Step 2 - Deploy Trading Pair Exchanges */
             const deployedExchanges = await deployExchanges(
@@ -48,7 +49,7 @@ describe("Router contract", ()=> {
             const deadline = currentTime + (20 * 60); //deadline is current time + 20 minutes
 
             /* Step 4 - Deposit liquidity into Trading Pair Exchnages */
-            const depositedLiquidity = await depositLiquidityIntoExchanges({
+            await depositLiquidityIntoExchanges({
                 deployedExchanges,
                 router,
                 deadline,
@@ -68,7 +69,6 @@ describe("Router contract", ()=> {
                 trader,
                 router,
                 deadline
-                // depositedLiquidity
             }
         }
 
@@ -81,104 +81,30 @@ describe("Router contract", ()=> {
                 liquidityProvider,
                 trader,
                 router,
-                deadline,
-                depositedLiquidity
+                deadline
             } = await loadFixture(deployRouterFixture);
        
 
-            console.log('----- format 1660000000000000000000-----', ethers.utils.formatUnits('1660000000000000000000'));
-            console.log('----- format 100000000000000000000 -----', ethers.utils.formatUnits('100000000000000000000'));
-            console.log('----- format 100000000000000000000 -----', ethers.utils.formatUnits('100000000000000000000'));
-            console.log('----- format 100000000000000000000 -----', ethers.utils.formatUnits('100000000000000000000'));
-            console.log('----- format 1000000000000000000000 -----', ethers.utils.formatUnits('1000000000000000000000'));
-            console.log('----- format 2000000000000000000000 -----', ethers.utils.formatUnits('2000000000000000000000'));
-            console.log('----- format 1000000000000000000000 -----', ethers.utils.formatUnits('1000000000000000000000'));
-            console.log('----- format 2000000000000000000000 -----', ethers.utils.formatUnits('2000000000000000000000'));
 
-
-            console.log('--------------------------------------------------------------------------------');
-
-
-            console.log('----- format 145000000000000000000 -----', ethers.utils.formatUnits('145000000000000000000'));
-            console.log('----- format 8011071920379703695 -----', ethers.utils.formatUnits('8011071920379703695'));
-            console.log('----- format 7396293851955551380 -----', ethers.utils.formatUnits('7396293851955551380'));
-            console.log('----- format 14640251191718617288 -----', ethers.utils.formatUnits('14640251191718617288'));
-            console.log('----- format 28772685254716384554 -----', ethers.utils.formatUnits('28772685254716384554'));
-            console.log('----- format 145000000000000000000 -----', ethers.utils.formatUnits('145000000000000000000'));
-            console.log('----- format 2000000000000000000 -----', ethers.utils.formatUnits('2000000000000000000'));
-
-
-            console.log('--------------------------------------------------------------------------------');
-
-            console.log('----- format 1805000000000000000000 -----', ethers.utils.formatUnits('1805000000000000000000'));
-            console.log('----- format 1660000000000000000000 -----', ethers.utils.formatUnits('1660000000000000000000'));
-            console.log('----- format 145000000000000000000 -----', ethers.utils.formatUnits('145000000000000000000'));
-            console.log('----- format 91988928079620296305 -----', ethers.utils.formatUnits('91988928079620296305'));
-
-
-
-            console.log('----- format 100000000000000000000 -----', ethers.utils.formatUnits('100000000000000000000'));
-            console.log('----- format 8011071920379703695 -----', ethers.utils.formatUnits('8011071920379703695'));
-
-
-            console.log('--------------------------------------------------------------------------------');
-
-            console.log('----- format 166000000000000000001632325000000000000000000000 -----', ethers.utils.formatUnits('166000000000000000001632325000000000000000000000'));
-            console.log('----- format 166000000000000000000000000000000000000000000000 -----', ethers.utils.formatUnits('166000000000000000000000000000000000000000000000'));
-
-            console.log('--------------------------------------------------------------------------------');
-
-            console.log('----- format 100614778068424152315 -----', ethers.utils.formatUnits('100614778068424152315'));
-            console.log('----- format 100000000000000000000 -----', ethers.utils.formatUnits('100000000000000000000'));
-            console.log('----- format 7396293851955551380 -----', ethers.utils.formatUnits('7396293851955551380'));
-            console.log('----- format 8011071920379703695 -----', ethers.utils.formatUnits('8011071920379703695'));
-
-
-            console.log('--------------------------------------------------------------------------------');
-
-            console.log('----- format 100000000000000000000 -----', ethers.utils.formatUnits('100000000000000000000'));
-            console.log('----- format 100000000000000000000 -----', ethers.utils.formatUnits('100000000000000000000'));
-
-            console.log('--------------------------------------------------------------------------------');
-
-
-            console.log('----- format 10059074485266301320391500000000000000000000000 -----', ethers.utils.formatUnits('10059074485266301320391500000000000000000000000'));
-            console.log('----- format 10000000000000000000000000000000000000000000000 -----', ethers.utils.formatUnits('10000000000000000000000000000000000000000000000'));
-
-            console.log('--------------------------------------------------------------------------------');
-
-            console.log('----- format 1000000000000000000000 -----', ethers.utils.formatUnits('1000000000000000000000'));
-            console.log('----- format 1000000000000000000000 -----', ethers.utils.formatUnits('1000000000000000000000'));
-
-
-            console.log('--------------------------------------------------------------------------------');
-
-            console.log('----- format 1985359748808281382712 -----', ethers.utils.formatUnits('1985359748808281382712'));
-            console.log('----- format 2000000000000000000000 -----', ethers.utils.formatUnits('2000000000000000000000'));
-            console.log('----- format 14640251191718617288 -----', ethers.utils.formatUnits('14640251191718617288'));
-
-            console.log('--------------------------------------------------------------------------------');
-
+            console.log('---- aaveToken.balanceOf(trader.address) ----', await aaveToken.balanceOf(trader.address));
+            console.log('---- balToken.balanceOf(trader.address) ----', await balToken.balanceOf(trader.address));
 
             // Act
             const swapTx = await router.swapExactTokensForTokens(
                 ethers.utils.parseUnits('145', 18), // amountIn - Aave token $145 - exact amount of tokens a trader wants to trade
-                ethers.utils.parseUnits('2', 18),   // amountOutMin  - BAL token $2 - the minimum amount of the output token they're willing to receive
+                ethers.utils.parseUnits('2', 18),   // amountOutMin - BAL token $2 - the minimum amount of the output token they're willing to receive
                 path,
                 liquidityProvider.address,
                 deadline
             );
             await swapTx.wait();
 
+            // Assert
+            const aaveTokenBalanceAfterTrade = ethers.utils.formatUnits(await aaveToken.balanceOf(trader.address));
+            const balTokenBalanceAfterTrade = ethers.utils.formatUnits(await balToken.balanceOf(trader.address));
 
-
-
-            // // Assert
-            // const aaveTokenBalanceAfterTrade = ethers.utils.formatUnits(await aaveToken.balanceOf(trader.address));
-            // const balTokenBalanceAfterTrade = ethers.utils.formatUnits(await balToken.balanceOf(trader.address));
-
-            // expect(aaveTokenBalanceAfterTrade).to.equal("0");
-            // expect(balTokenBalanceAfterTrade).to.equal("0");
+            expect(aaveTokenBalanceAfterTrade).to.equal("0");
+            expect(balTokenBalanceAfterTrade).to.equal("0");
         });
 
     });

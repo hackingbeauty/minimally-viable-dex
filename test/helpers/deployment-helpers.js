@@ -1,12 +1,17 @@
 const { ethers } = require("hardhat");
 
-async function deployERC20Contracts(tokenContracts, deployer, liquidityProvider, router) {
+async function deployERC20Contracts(config) {
+    const {
+        tokenContracts,
+        deployer,
+        liquidityProvider,
+        router,
+        trader
+    } = config;
 
     const aaveToken = tokenContracts[0];
     const daiToken = tokenContracts[1];
     const usdcToken = tokenContracts[2];
-    const thetaToken = tokenContracts[3];
-    const balToken = tokenContracts[4];
 
     const baseContract = await ethers.getContractFactory("ERC20Basic");
     const deployedERC20Contracts = [];
@@ -32,6 +37,26 @@ async function deployERC20Contracts(tokenContracts, deployer, liquidityProvider,
         ethers.utils.parseUnits('7000', 18)
     );
     await aaveTokenTx2.wait();
+
+    console.log('--------------------------------------------------------------');
+
+    /* Mint tokens for Liquidity Provider's account */
+    const aaveTokenTx3 = await aaveTokenContract.mint(
+        trader.address,
+        ethers.utils.parseUnits('7000', 18)
+    );
+    await aaveTokenTx3.wait();
+    
+    /* Liquidity Provider approves Router to transfer tokens */
+    const aaveTokenTx4 =  await aaveTokenContract.connect(trader).approve(
+        router.address,
+        ethers.utils.parseUnits('7000', 18)
+    );
+    await aaveTokenTx4.wait();
+
+    console.log('--------------------------------------------------------------');
+
+
 
     deployedERC20Contracts.push({
         "name": aaveToken.name,
@@ -98,68 +123,8 @@ async function deployERC20Contracts(tokenContracts, deployer, liquidityProvider,
         "address": usdcTokenContract.address,
         "contract": usdcTokenContract
     });
-
-    // const thetaTokenContract = await baseContract.deploy(
-    //     thetaToken.name,
-    //     thetaToken.symbol,
-    //     18,
-    //     deployer.address
-    // );
-    // await thetaTokenContract.deployed();
-
-    // /* Mint tokens for Liquidity Provider's account */
-    // const thetaTokenTx1 = await thetaTokenContract.mint(
-    //     liquidityProvider.address,
-    //     ethers.utils.parseUnits('7000', 18)
-    // );
-    // await thetaTokenTx1.wait();
-    
-    // /* Liquidity Provider approves Router to transfer tokens */
-    // const thetaTokenTx2 =  await thetaTokenContract.connect(liquidityProvider).approve(
-    //     router.address,
-    //     ethers.utils.parseUnits('7000', 18)
-    // );
-    // await thetaTokenTx2.wait();
-
-    // deployedERC20Contracts.push({
-    //     "name": thetaToken.name,
-    //     "symbol": thetaToken.symbol,
-    //     "address": thetaTokenContract.address,
-    //     "contract": thetaTokenContract
-    // });
-
-    // const balTokenContract = await baseContract.deploy(
-    //     balToken.name,
-    //     balToken.symbol,
-    //     18,
-    //     deployer.address
-    // );
-    // await balTokenContract.deployed();
-
-    // /* Mint tokens for Liquidity Provider's account */
-    // const balTokenTx1 = await balTokenContract.mint(
-    //     liquidityProvider.address,
-    //     ethers.utils.parseUnits('7000', 18)
-    // );
-    // await balTokenTx1.wait();
-    
-    // /* Liquidity Provider approves Router to transfer tokens */
-    // const balTokenTx2 =  await balTokenContract.connect(liquidityProvider).approve(
-    //     router.address,
-    //     ethers.utils.parseUnits('7000', 18)
-    // );
-    // await balTokenTx2.wait();
-
-    // deployedERC20Contracts.push({
-    //     "name": balToken.name,
-    //     "symbol": balToken.symbol,
-    //     "address": balTokenContract.address,
-    //     "contract": balTokenContract
-    // });
-
-    
+ 
     return deployedERC20Contracts;
-
 }
 
 async function deployExchanges(factory, contracts, depositAmounts) {
@@ -174,12 +139,7 @@ async function deployExchanges(factory, contracts, depositAmounts) {
             tradingPair = `${tokenASymbol}:${tokenBSymbol}`;
 
             const address = await factory.callStatic.createTradingPair(tokenA, tokenB); 
-
-            // wait for tx here?
-
-            const depositAmount = depositAmounts.find((pair) => {
-                return pair.tradingPair === tradingPair;
-            });
+            const depositAmount = depositAmounts.find((pair) => { return pair.tradingPair === tradingPair; });
 
             const {
                 amountADesired,
@@ -213,14 +173,8 @@ async function depositLiquidityIntoExchanges(config) {
         deadline
     } = config;
 
-    console.log(' deployedExchanges[0]; ', deployedExchanges[0]);
-    console.log(' deployedExchanges[1]; ', deployedExchanges[1]);
-
-
     const aaveDaiExchange = deployedExchanges[0];
     const daiUsdcExchange = deployedExchanges[1];
-    // const usdcThetaExchange = deployedExchanges[2];
-    // const thetaBalExchange = deployedExchanges[3];
 
     const tx1 = await router.depositLiquidity(
         aaveDaiExchange.tokenA,
@@ -245,31 +199,6 @@ async function depositLiquidityIntoExchanges(config) {
         deadline    
     );
     await tx2.wait();
-
-    // const tx3 = await router.depositLiquidity(
-    //     usdcThetaExchange.tokenA,
-    //     usdcThetaExchange.tokenB,
-    //     ethers.utils.parseUnits(`${usdcThetaExchange.amountADesired}`, 18),
-    //     ethers.utils.parseUnits(`${usdcThetaExchange.amountBDesired}`, 18),
-    //     ethers.utils.parseUnits(`${usdcThetaExchange.amountAMin}`, 18),
-    //     ethers.utils.parseUnits(`${usdcThetaExchange.amountBMin}`, 18),
-    //     liquidityProvider.address,
-    //     deadline    
-    // );
-    // await tx3.wait();
-
-    // const tx4 = await router.depositLiquidity(
-    //     thetaBalExchange.tokenA,
-    //     thetaBalExchange.tokenB,
-    //     ethers.utils.parseUnits(`${thetaBalExchange.amountADesired}`, 18),
-    //     ethers.utils.parseUnits(`${thetaBalExchange.amountBDesired}`, 18),
-    //     ethers.utils.parseUnits(`${thetaBalExchange.amountAMin}`, 18),
-    //     ethers.utils.parseUnits(`${thetaBalExchange.amountBMin}`, 18),
-    //     liquidityProvider.address,
-    //     deadline    
-    // );
-    // await tx4.wait();
-
 }
 
 function getPath(deployedContracts) {
