@@ -70,6 +70,8 @@ library DEXLibrary {
         console.log('------ path[0] ------', path[0]);
         console.log('------ path[1] ------', path[1]);
         console.log('------ path[2] ------', path[2]);
+        console.log('------ path[3] ------', path[3]);
+        console.log('------ path[4] ------', path[4]);
 
         for (uint i; i < path.length - 1; i++) {
             (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1]);
@@ -79,6 +81,8 @@ library DEXLibrary {
         console.log('------ amounts[0] ------', amounts[0]);
         console.log('------ amounts[1] ------', amounts[1]);
         console.log('------ amounts[2] ------', amounts[2]);
+        console.log('------ amounts[3] ------', amounts[3]);
+        console.log('------ amounts[4] ------', amounts[4]);
 
     }
 

@@ -42,7 +42,7 @@ describe("Router contract", ()=> {
             const deadline = currentTime + (20 * 60); //deadline is current time + 20 minutes
             
             /* Step 3 - Deploy Trading Pair Exchanges */
-            const deployedExchanges = await deployExchanges({
+            await deployExchanges({
                 factory,
                 deployedContracts,
                 depositAmounts,
@@ -79,11 +79,6 @@ describe("Router contract", ()=> {
                 deadline
             } = await loadFixture(deployRouterFixture);
        
-
-
-            console.log('---- aaveToken.balanceOf(trader.address) ----', await aaveToken.balanceOf(trader.address));
-            console.log('---- balToken.balanceOf(trader.address) ----', await balToken.balanceOf(trader.address));
-
             // Act
             const swapTx = await router.swapExactTokensForTokens(
                 ethers.utils.parseUnits('145', 18), // amountIn - Aave token $145 - exact amount of tokens a trader wants to trade

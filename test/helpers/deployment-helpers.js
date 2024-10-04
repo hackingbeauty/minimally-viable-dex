@@ -9,122 +9,54 @@ async function deployERC20Contracts(config) {
         trader
     } = config;
 
-    const aaveToken = tokenContracts[0];
-    const daiToken = tokenContracts[1];
-    const usdcToken = tokenContracts[2];
-
     const baseContract = await ethers.getContractFactory("ERC20Basic");
-    const deployedERC20Contracts = [];
 
-    const aaveTokenContract = await baseContract.deploy(
-        aaveToken.name,
-        aaveToken.symbol,
-        18,
-        deployer.address
-    );
-    await aaveTokenContract.deployed();
-
-    /* Mint tokens for Liquidity Provider's account */
-    const aaveTokenTx1 = await aaveTokenContract.mint(
-        liquidityProvider.address,
-        ethers.utils.parseUnits('7000', 18)
-    );
-    await aaveTokenTx1.wait();
+    const deployedERC20Contracts = tokenContracts.map(async(contract, index) => {
+        const tokenContract = await baseContract.deploy(
+            contract.name,
+            contract.symbol,
+            18,
+            deployer.address
+        );
+        await tokenContract.deployed();
     
-    /* Liquidity Provider approves Router to transfer tokens */
-    const aaveTokenTx2 =  await aaveTokenContract.connect(liquidityProvider).approve(
-        router.address,
-        ethers.utils.parseUnits('7000', 18)
-    );
-    await aaveTokenTx2.wait();
-
-    console.log('--------------------------------------------------------------');
-
-    /* Mint tokens for Liquidity Provider's account */
-    const aaveTokenTx3 = await aaveTokenContract.mint(
-        trader.address,
-        ethers.utils.parseUnits('7000', 18)
-    );
-    await aaveTokenTx3.wait();
+        /* Mint tokens for Liquidity Provider's account */
+        const tx1 = await tokenContract.mint(
+            liquidityProvider.address,
+            ethers.utils.parseUnits('7000', 18)
+        );
+        await tx1.wait();
+        
+        /* Mint tokens for Trader's account */
+        const tx2 = await tokenContract.mint(
+            trader.address,
+            ethers.utils.parseUnits('7000', 18)
+        );
+        await tx2.wait();
     
-    /* Liquidity Provider approves Router to transfer tokens */
-    const aaveTokenTx4 =  await aaveTokenContract.connect(trader).approve(
-        router.address,
-        ethers.utils.parseUnits('7000', 18)
-    );
-    await aaveTokenTx4.wait();
+        /* Liquidity Provider approves Router to transfer tokens */
+        const tx3 = await tokenContract.connect(liquidityProvider).approve(
+            router.address,
+            ethers.utils.parseUnits('7000', 18)
+        );
+        await tx3.wait();
 
-    console.log('--------------------------------------------------------------');
+        /* Trader approves Router to transfer tokens */
+        const tx4 = await tokenContract.connect(trader).approve(
+            router.address,
+            ethers.utils.parseUnits('7000', 18)
+        );
+        await tx4.wait();
 
-
-
-    deployedERC20Contracts.push({
-        "name": aaveToken.name,
-        "symbol": aaveToken.symbol,
-        "address": aaveTokenContract.address,
-        "contract": aaveTokenContract
+        return {
+            "name": contract.name,
+            "symbol": contract.symbol,
+            "address": tokenContract.address,
+            "contract": tokenContract
+        }   
     });
 
-
-    const daiTokenContract = await baseContract.deploy(
-        daiToken.name,
-        daiToken.symbol,
-        18,
-        deployer.address
-    );
-    await daiTokenContract.deployed();
-
-    /* Mint tokens for Liquidity Provider's account */
-    const daiTokenTx1 = await daiTokenContract.mint(
-        liquidityProvider.address,
-        ethers.utils.parseUnits('7000', 18)
-    );
-    await daiTokenTx1.wait();
-    
-    /* Liquidity Provider approves Router to transfer tokens */
-    const daiTokenTx2 =  await daiTokenContract.connect(liquidityProvider).approve(
-        router.address,
-        ethers.utils.parseUnits('7000', 18)
-    );
-    await daiTokenTx2.wait();
-
-    deployedERC20Contracts.push({
-        "name": daiToken.name,
-        "symbol": daiToken.symbol,
-        "address": daiTokenContract.address,
-        "contract": daiTokenContract
-    });
-
-    const usdcTokenContract = await baseContract.deploy(
-        usdcToken.name,
-        usdcToken.symbol,
-        18,
-        deployer.address
-    );
-    await usdcTokenContract.deployed();
-
-    /* Mint tokens for Liquidity Provider's account */
-    const usdcTokenTx1 = await usdcTokenContract.mint(
-        liquidityProvider.address,
-        ethers.utils.parseUnits('7000', 18)
-    );
-    await usdcTokenTx1.wait();
-    
-    /* Liquidity Provider approves Router to transfer tokens */
-    const usdcTokenTx2 =  await usdcTokenContract.connect(liquidityProvider).approve(
-        router.address,
-        ethers.utils.parseUnits('7000', 18)
-    );
-    await usdcTokenTx2.wait();
-
-    deployedERC20Contracts.push({
-        "name": usdcToken.name,
-        "symbol": usdcToken.symbol,
-        "address": usdcTokenContract.address,
-        "contract": usdcTokenContract
-    });
- 
-    return deployedERC20Contracts;
+    return await Promise.all(deployedERC20Contracts);
 }
 
 async function deployExchanges(config) {
@@ -138,6 +70,7 @@ async function deployExchanges(config) {
     } = config;
 
     const deployedExchanges = deployedContracts.map(async (contract, index) => {
+
         const tokenA = deployedContracts[index].address;
         const tokenASymbol = deployedContracts[index].symbol;   
         let tokenB, tokenBSymbol, tradingPair;
@@ -151,6 +84,7 @@ async function deployExchanges(config) {
             const depositAmount = depositAmounts.find((pair) => { 
                 return pair.tradingPair === tradingPair; 
             });
+
             const {
                 amountADesired,
                 amountBDesired,
@@ -158,30 +92,28 @@ async function deployExchanges(config) {
                 amountBMin
             } = depositAmount;
 
-           const tx = await router.depositLiquidity(
+            const tx = await router.depositLiquidity(
                 tokenA,
                 tokenB,
                 ethers.utils.parseUnits(`${amountADesired}`, 18),
                 ethers.utils.parseUnits(`${amountBDesired}`, 18),
-                ethers.utils.parseUnits(`${amountAMin}`, 18),
-                ethers.utils.parseUnits(`${amountBMin}`, 18),
+                ethers.utils.parseUnits(`${amountAMin}`,     18),
+                ethers.utils.parseUnits(`${amountBMin}`,     18),
                 liquidityProvider.address,
                 deadline    
             );
             await tx.wait();
         
-            return Object.assign({},
-                {
-                    address,
-                    tradingPair,
-                    tokenA,
-                    tokenB,
-                    amountADesired,
-                    amountBDesired,
-                    amountAMin,
-                    amountBMin
-                }
-            );
+            return {
+                address,
+                tradingPair,
+                tokenA,
+                tokenB,
+                amountADesired,
+                amountBDesired,
+                amountAMin,
+                amountBMin
+            }
         }
     });
     
@@ -197,6 +129,5 @@ function getPath(deployedContracts) {
 module.exports = { 
     deployERC20Contracts,
     deployExchanges,
-    depositLiquidityIntoExchanges,
     getPath
 }
