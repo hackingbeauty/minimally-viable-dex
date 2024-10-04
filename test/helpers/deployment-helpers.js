@@ -127,20 +127,30 @@ async function deployERC20Contracts(config) {
     return deployedERC20Contracts;
 }
 
-async function deployExchanges(factory, contracts, depositAmounts) {
-    const deployedExchanges = contracts.map(async (contract, index) => {
-        const tokenA = contracts[index].address;
-        const tokenASymbol = contracts[index].symbol;
+async function deployExchanges(config) {
+    const { 
+        factory,
+        deployedContracts,
+        depositAmounts,
+        router,
+        liquidityProvider,
+        deadline
+    } = config;
+
+    const deployedExchanges = deployedContracts.map(async (contract, index) => {
+        const tokenA = deployedContracts[index].address;
+        const tokenASymbol = deployedContracts[index].symbol;   
         let tokenB, tokenBSymbol, tradingPair;
 
-        if(index < contracts.length-1) {
-            tokenB = contracts[index+1].address;
-            tokenBSymbol = contracts[index+1].symbol;
+        if(index < deployedContracts.length-1) {
+            tokenB = deployedContracts[index+1].address;
+            tokenBSymbol = deployedContracts[index+1].symbol;
             tradingPair = `${tokenASymbol}:${tokenBSymbol}`;
 
             const address = await factory.callStatic.createTradingPair(tokenA, tokenB); 
-            const depositAmount = depositAmounts.find((pair) => { return pair.tradingPair === tradingPair; });
-
+            const depositAmount = depositAmounts.find((pair) => { 
+                return pair.tradingPair === tradingPair; 
+            });
             const {
                 amountADesired,
                 amountBDesired,
@@ -148,6 +158,18 @@ async function deployExchanges(factory, contracts, depositAmounts) {
                 amountBMin
             } = depositAmount;
 
+           const tx = await router.depositLiquidity(
+                tokenA,
+                tokenB,
+                ethers.utils.parseUnits(`${amountADesired}`, 18),
+                ethers.utils.parseUnits(`${amountBDesired}`, 18),
+                ethers.utils.parseUnits(`${amountAMin}`, 18),
+                ethers.utils.parseUnits(`${amountBMin}`, 18),
+                liquidityProvider.address,
+                deadline    
+            );
+            await tx.wait();
+        
             return Object.assign({},
                 {
                     address,
@@ -164,41 +186,6 @@ async function deployExchanges(factory, contracts, depositAmounts) {
     });
     
     return await Promise.all(deployedExchanges);
-}
-async function depositLiquidityIntoExchanges(config) {
-    const { 
-        deployedExchanges,
-        router,
-        liquidityProvider,
-        deadline
-    } = config;
-
-    const aaveDaiExchange = deployedExchanges[0];
-    const daiUsdcExchange = deployedExchanges[1];
-
-    const tx1 = await router.depositLiquidity(
-        aaveDaiExchange.tokenA,
-        aaveDaiExchange.tokenB,
-        ethers.utils.parseUnits(`${aaveDaiExchange.amountADesired}`, 18),
-        ethers.utils.parseUnits(`${aaveDaiExchange.amountBDesired}`, 18),
-        ethers.utils.parseUnits(`${aaveDaiExchange.amountAMin}`, 18),
-        ethers.utils.parseUnits(`${aaveDaiExchange.amountBMin}`, 18),
-        liquidityProvider.address,
-        deadline    
-    );
-    await tx1.wait();
-
-    const tx2 = await router.depositLiquidity(
-        daiUsdcExchange.tokenA,
-        daiUsdcExchange.tokenB,
-        ethers.utils.parseUnits(`${daiUsdcExchange.amountADesired}`, 18),
-        ethers.utils.parseUnits(`${daiUsdcExchange.amountBDesired}`, 18),
-        ethers.utils.parseUnits(`${daiUsdcExchange.amountAMin}`, 18),
-        ethers.utils.parseUnits(`${daiUsdcExchange.amountBMin}`, 18),
-        liquidityProvider.address,
-        deadline    
-    );
-    await tx2.wait();
 }
 
 function getPath(deployedContracts) {

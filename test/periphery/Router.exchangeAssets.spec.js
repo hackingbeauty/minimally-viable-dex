@@ -36,27 +36,22 @@ describe("Router contract", ()=> {
                 router,
                 trader
             });
-            
-            /* Step 2 - Deploy Trading Pair Exchanges */
-            const deployedExchanges = await deployExchanges(
-                factory,
-                deployedContracts,
-                depositAmounts
-            );
 
-            /* Step 3 - Calculate transaction deadline of 20 minutes */
+            /* Step 2 - Calculate transaction deadline of 20 minutes */
             const currentTime = Math.floor(Date.now() / 1000); //divide by 1000 to get seconds
             const deadline = currentTime + (20 * 60); //deadline is current time + 20 minutes
-
-            /* Step 4 - Deposit liquidity into Trading Pair Exchnages */
-            await depositLiquidityIntoExchanges({
-                deployedExchanges,
+            
+            /* Step 3 - Deploy Trading Pair Exchanges */
+            const deployedExchanges = await deployExchanges({
+                factory,
+                deployedContracts,
+                depositAmounts,
                 router,
-                deadline,
-                liquidityProvider
+                liquidityProvider,
+                deadline
             });
 
-            /* Step 5 - Get array of token contracts to pass into Router */
+            /* Step 3 - Get array of token contracts to pass into Router */
             const path = getPath(deployedContracts); 
             const aaveToken = deployedContracts[0].contract;
             const balToken = deployedContracts[1].contract;
