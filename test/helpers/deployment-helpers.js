@@ -79,6 +79,7 @@ async function deployExchanges(config) {
             tradingPair = `${tokenASymbol}:${tokenBSymbol}`;
 
             const address = await factory.callStatic.createTradingPair(tokenA, tokenB); 
+
             const depositAmount = depositAmounts.find((pair) => { 
                 return pair.tradingPair === tradingPair; 
             });

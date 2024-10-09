@@ -93,7 +93,7 @@ describe("Router contract", ()=> {
             // Act
             const swapTx = await router.swapExactTokensForTokens(
                 ethers.utils.parseUnits('145', 18), // amountIn - Aave token $145 - exact amount of tokens a trader wants to trade
-                ethers.utils.parseUnits('3', 18),   // amountOutMin - BAL token $2 - the minimum amount of the output token they're willing to receive
+                ethers.utils.parseUnits('1', 18),   // amountOutMin - BAL token $2 - the minimum amount of the output token they're willing to receive
                 path,
                 trader.address,
                 deadline
