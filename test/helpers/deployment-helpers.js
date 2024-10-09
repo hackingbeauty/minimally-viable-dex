@@ -8,7 +8,6 @@ async function deployERC20Contracts(config) {
         router,
         trader
     } = config;
-
     const baseContract = await ethers.getContractFactory("ERC20Basic");
 
     const deployedERC20Contracts = tokenContracts.map(async(contract, index) => {
@@ -23,28 +22,28 @@ async function deployERC20Contracts(config) {
         /* Mint tokens for Liquidity Provider's account */
         const tx1 = await tokenContract.mint(
             liquidityProvider.address,
-            ethers.utils.parseUnits('7000', 18)
+            ethers.utils.parseUnits('7000000000', 18)
         );
         await tx1.wait();
         
         /* Mint tokens for Trader's account */
         const tx2 = await tokenContract.mint(
             trader.address,
-            ethers.utils.parseUnits('7000', 18)
+            ethers.utils.parseUnits('7000000000', 18)
         );
         await tx2.wait();
     
         /* Liquidity Provider approves Router to transfer tokens */
         const tx3 = await tokenContract.connect(liquidityProvider).approve(
             router.address,
-            ethers.utils.parseUnits('7000', 18)
+            ethers.utils.parseUnits('7000000000', 18)
         );
         await tx3.wait();
 
         /* Trader approves Router to transfer tokens */
         const tx4 = await tokenContract.connect(trader).approve(
             router.address,
-            ethers.utils.parseUnits('7000', 18)
+            ethers.utils.parseUnits('7000000000', 18)
         );
         await tx4.wait();
 
@@ -70,7 +69,6 @@ async function deployExchanges(config) {
     } = config;
 
     const deployedExchanges = deployedContracts.map(async (contract, index) => {
-
         const tokenA = deployedContracts[index].address;
         const tokenASymbol = deployedContracts[index].symbol;   
         let tokenB, tokenBSymbol, tradingPair;
