@@ -68,19 +68,10 @@ library DEXLibrary {
         amounts = new uint[](path.length);
         amounts[0] = amountIn;
 
-        console.log('------ path[0] ------', path[0]);
-        console.log('------ path[1] ------', path[1]);
-        console.log('------ path[2] ------', path[2]);
-        console.log('---- path.lenght iz: ', path.length);
-
         for (uint i; i < path.length - 1; i++) {
             (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1]);
             amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);
         }
-
-        console.log('------ amounts[0] ------', amounts[0]);
-        console.log('------ amounts[1] ------', amounts[1]);
-        console.log('------ amounts[2] ------', amounts[2]);
     }
 
     // performs chained getAmountIn calculations on any number of pairs

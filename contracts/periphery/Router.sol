@@ -118,8 +118,6 @@ contract Router is IRouter {
     ) external ensure(deadline) returns (uint[] memory amounts) {         //the various amounts that will be swapped out
         amounts = DEXLibrary.getAmountsOut(factoryAddr, amountIn, path);  //from each exchange along the path
         require(amounts[amounts.length - 1] >= amountOutMin, 'DEX ROUTER: INSUFFICIENT_OUTPUT_AMOUNT');
-        // console.log('----- amountIn -----', amountIn);
-        // console.log('----- amountOutMin -----', amountOutMin);
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, DEXLibrary.pairFor(factoryAddr, path[0], path[1]), amounts[0]
         );

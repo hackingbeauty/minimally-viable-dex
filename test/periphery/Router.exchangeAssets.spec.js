@@ -81,15 +81,6 @@ describe("Router contract", ()=> {
                 deadline
             } = await loadFixture(deployRouterFixture);
 
-            // console.log('---- 7000000010830502143498375538 - 7000000000000000000000000000', ethers.utils.formatUnits('10830502000000000000'));            
-            // console.log('--------- 7000000000000000000000000000 -------', ethers.utils.formatUnits('7000000000000000000000000000'));
-            // console.log('--------- 7000000010830502143498375538 -------', ethers.utils.formatUnits('7000000010830502143498375538'));
-
-            console.log('----- before aaveTokenBalanceAfterTrade -----', await aaveToken.balanceOf(trader.address));
-            console.log('----- before daiTokenBalanceAfterTrade -----', await daiToken.balanceOf(trader.address));
-            console.log('----- before balTokenBalanceAfterTrade -----', await balToken.balanceOf(trader.address));
-            console.log('-------------------------------------------------------------------------------------------');
-
             // Act
             const swapTx = await router.swapExactTokensForTokens(
                 ethers.utils.parseUnits('145', 18), // amountIn - Aave token $145 - exact amount of tokens a trader wants to trade
@@ -104,10 +95,7 @@ describe("Router contract", ()=> {
             // const aaveTokenBalanceAfterTrade = ethers.utils.formatUnits(await aaveToken.balanceOf(trader.address));
             // const balTokenBalanceAfterTrade = ethers.utils.formatUnits(await balToken.balanceOf(trader.address));
 
-            console.log('----- after aaveTokenBalanceAfterTrade -----', await aaveToken.balanceOf(trader.address));
-            console.log('----- after daiTokenBalanceAfterTrade -----', await daiToken.balanceOf(trader.address));
-            console.log('----- after balTokenBalanceAfterTrade -----', await balToken.balanceOf(trader.address));
-
+    
             expect(true).to.equal(true);
             // expect(balTokenBalanceAfterTrade).to.equal("0");
         });
@@ -115,57 +103,3 @@ describe("Router contract", ()=> {
     });
 
 });
-
-// it("should exchange tokens for exact tokens", async() => {
-//     // Arrange
-//     const { 
-//         path,
-//         liquidityProvider,
-//         deadline,
-//         trader
-//     } = await loadFixture(deployRouterFixture);
-
-//     const amountIn = 0;
-//     const amountOutMin = 0;
-
-//     // Act
-//     const { amountA, amountB } = await router.callStatic.exchangeTokensForExactTokens(
-//         amountIn,
-//         amountOutMin,
-//         path,
-//         liquidityProvider.address,
-//         deadline
-//     );
-
-//     // Format balances
-//     const updatedTraderTokenABalance = await aaveToken.balanceOf(trader.address)
-//     const updatedTraderTokenBBalance = await daiToken.balanceOf(trader.address)
-//     const formattedUpdatedTraderTokenABalance = ethers.utils.formatUnits(updatedTraderTokenABalance);
-//     const formattedUpdatedTraderTokenBBalance = ethers.utils.formatUnits(updatedTraderTokenBBalance);
-
-//     // Assert
-//     // expect(trader) to have X amount of tokenA
-//     // expect(trader) to have Y amount of tokenB
-//     expect(formattedUpdatedTraderTokenABalance).to.equal("0");
-//     expect(formattedUpdatedTraderTokenBBalance).to.equal("0");
-// });
-
-// it("should swapExactETHForTokens", async() => {
-//     // allows a trader to swap a precise amount of ETH
-//     // for a minimum amount of another token in return
-// });
-
-// it("should swapTokensForExactETH", async() => {
-//     // trader inputs a maximum of some other token in exchange
-//     // for an exact amount of ETH that they want
-// });
-
-// it("should swapExactTokensForETH", async() => {
-//     // swaps an exact number of some non-ETH token in exchange
-//     // for a minimum amount of ETH the trader is willing to accept
-// });
-
-// it("should swapETHForExactTokens", async() => {
-//     // swaps an amount of ETH for an EXACT
-//     // amount of some non-ETH token
-// }); 
