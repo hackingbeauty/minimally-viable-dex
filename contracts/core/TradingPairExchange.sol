@@ -162,6 +162,7 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
         address _tokenA = tokenA;
         address _tokenB = tokenB;
         require(to != _tokenA && to != _tokenB, 'UniswapV2: INVALID_TO');
+
         if (amount0Out > 0) _safeTransfer(_tokenA, to, amount0Out); // optimistically transfer tokens
         if (amount1Out > 0) _safeTransfer(_tokenB, to, amount1Out); // optimistically transfer tokens
         if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);

@@ -72,16 +72,13 @@ describe("Router contract", ()=> {
             // Arrange
             const { 
                 path,
-                aaveToken,
-                daiToken,
                 balToken,
-                liquidityProvider,
                 trader,
                 router,
                 deadline
             } = await loadFixture(deployRouterFixture);
 
-            // Act
+            // Act - Trader is exchanging AAVE tokens for BAL tokens
             const swapTx = await router.swapExactTokensForTokens(
                 ethers.utils.parseUnits('145', 18), // amountIn - Aave token $145 - exact amount of tokens a trader wants to trade
                 ethers.utils.parseUnits('1', 18),   // amountOutMin - BAL token $2 - the minimum amount of the output token they're willing to receive
@@ -91,14 +88,32 @@ describe("Router contract", ()=> {
             );
             await swapTx.wait();
 
-            // // Assert
-            // const aaveTokenBalanceAfterTrade = ethers.utils.formatUnits(await aaveToken.balanceOf(trader.address));
-            // const balTokenBalanceAfterTrade = ethers.utils.formatUnits(await balToken.balanceOf(trader.address));
+            // Trader receives 1.006685768646612797 BAL tokens after exchange
+            const balTokenBalanceAfterTrade = ethers.utils.formatUnits(await balToken.balanceOf(trader.address));
 
-    
-            expect(true).to.equal(true);
-            // expect(balTokenBalanceAfterTrade).to.equal("0");
+            // Assert 
+            expect(balTokenBalanceAfterTrade).to.equal("7000000001.006685768646612797");
         });
+
+        // it.only("should specify a maximum number of input tokens in exchange for an exact amount of input tokens", async() => {
+        //     // Arrange
+        //     const { 
+        //         path,
+        //         aaveToken,
+        //         daiToken,
+        //         balToken,
+        //         trader,
+        //         router,
+        //         deadline
+        //     } = await loadFixture(deployRouterFixture);
+
+        //     // // Act
+        //     // const swapTx = awaite router.swapTokensForExactTokens(
+
+        //     // );
+
+        //     expect(true).to.equal(false)
+        // });
 
     });
 
