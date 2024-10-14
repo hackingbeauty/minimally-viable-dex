@@ -98,7 +98,7 @@ describe("Router contract", ()=> {
             expect(balTokenBalanceAfterTrade).to.equal("7000000001.006685768646612797");
         });
 
-        it("should specify a maximum number of input tokens in exchange for an exact amount of input tokens", async() => {
+        it("should specify a maximum number of input tokens in exchange for an exact amount of output tokens", async() => {
             // Arrange
             const { 
                 path,
@@ -110,17 +110,24 @@ describe("Router contract", ()=> {
                 deadline
             } = await loadFixture(deployRouterFixture);
 
+            const amountOut = ethers.utils.parseUnits('2', 18);
+            const amountInMax = ethers.utils.parseUnits('145', 18);
+
             // Act
             const swapTx = await router.swapTokensForExactTokens(
-                // uint amountOut,
-                // uint amountInMax,
-
+                amountOut,
+                amountInMax,
                 path,
-                trader,
+                trader.address,
                 deadline
             );
+            await swapTx.wait();
 
-            expect(true).to.equal(false)
+            // Trader receives 1.006685768646612797 BAL tokens after exchange
+            const balTokenBalanceAfterTrade = ethers.utils.formatUnits(await balToken.balanceOf(trader.address));
+
+            // Assert 
+            expect(balTokenBalanceAfterTrade).to.equal("888888888.999999999999");
         });
 
     });
