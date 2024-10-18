@@ -109,7 +109,9 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
 
         uint _totalSupply = totalSupply; //gas savings
         if(_totalSupply == 0) {
-            liquidity = Math.sqrt(amount0 * amount1) - (MINIMUM_LIQUIDITY);
+            unchecked {
+                liquidity = Math.sqrt(amount0 * amount1) - (MINIMUM_LIQUIDITY);
+            }
             _mint(address(0), MINIMUM_LIQUIDITY);
         } else {
             liquidity = Math.min((amount0 * _totalSupply) / reserve0, (amount1 * _totalSupply) / reserve1);
@@ -163,8 +165,25 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
         address _tokenB = tokenB;
         require(to != _tokenA && to != _tokenB, 'UniswapV2: INVALID_TO');
 
-        if (amount0Out > 0) _safeTransfer(_tokenA, to, amount0Out); // optimistically transfer tokens
-        if (amount1Out > 0) _safeTransfer(_tokenB, to, amount1Out); // optimistically transfer tokens
+        // if (amount0Out > 0) _safeTransfer(_tokenA, to, amount0Out); // optimistically transfer tokens
+        // if (amount1Out > 0) _safeTransfer(_tokenB, to, amount1Out); // optimistically transfer tokens
+
+        console.log('------------------------------------------------');
+
+        if (amount0Out > 0) {
+            _safeTransfer(_tokenA, to, amount0Out); // optimistically transfer tokens
+            console.log('------------------ _tokenA ------------------', _tokenA);
+            console.log('------------------ to ------------------', to);
+            console.log('------------------ amount0Out ------------------', amount0Out);
+
+        }
+        if (amount1Out > 0) {
+            _safeTransfer(_tokenB, to, amount1Out); // optimistically transfer tokens
+            console.log('------------------ _tokenB ------------------', _tokenB);
+            console.log('------------------ to ------------------', to);
+            console.log('------------------ amount1Out ------------------', amount1Out);
+        }
+
         if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
         balance0 = IERC20(_tokenA).balanceOf(address(this));
         balance1 = IERC20(_tokenB).balanceOf(address(this));
@@ -184,10 +203,12 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
             previousConstantProductK =(uint(_reserve0) * _reserve1) * (1000**2);
         }
 
+
         require(updatedConstantProductK >= previousConstantProductK, 'UniswapV2: K');
         }
 
         _update(balance0, balance1);
+
         emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
     }
 
@@ -208,5 +229,4 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
         return transferSuccess;
     }
 
-    
 }

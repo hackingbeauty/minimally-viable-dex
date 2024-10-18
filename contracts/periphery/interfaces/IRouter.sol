@@ -2,6 +2,8 @@
 pragma solidity=0.8.17;
 
 interface IRouter {
+    function factoryAddr() external view returns (address);
+    function WETH() external view returns (address);
     function depositLiquidity(
         address tokenA,
         address tokenB,

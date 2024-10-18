@@ -33,6 +33,8 @@ library DEXLibrary {
     function getReserves(address factory, address tokenA, address tokenB) internal view returns (uint reserveA, uint reserveB) {
         (address token0, ) = sortTokens(tokenA, tokenB);
         (uint reserve0, uint reserve1,) = ITradingPairExchange(pairFor(factory, tokenA, tokenB)).getReserves();
+
+        console.log('---- trading pair contract address ----', pairFor(factory, tokenA, tokenB));
         (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
     }    
 
@@ -46,6 +48,9 @@ library DEXLibrary {
     // given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset
     function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) internal pure returns (uint amountOut) {
         require(amountIn > 0, 'DEXLibrary: INSUFFICIENT_INPUT_AMOUNT');
+        console.log('---- reserveIn ----', reserveIn);
+        console.log('---- reserveOut ----', reserveOut);
+
         require(reserveIn > 0 && reserveOut > 0, 'DEXLibrary: INSUFFICIENT_LIQUIDITY');
         uint amountInWithFee = amountIn * 997;
         uint numerator = amountInWithFee * reserveOut;
