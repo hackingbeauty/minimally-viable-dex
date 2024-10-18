@@ -6,12 +6,19 @@ import '../core/interfaces/IFactory.sol';
 import '../core/interfaces/ITradingPairExchange.sol';
 import './libraries/DEXLibrary.sol';
 import './libraries/TransferHelper.sol';
+import './interfaces/IWETH.sol';
 
 contract Router is IRouter {
-    address public immutable factoryAddr;
+    address public immutable override factoryAddr;
+    address public immutable override WETH;
 
-    constructor(address _factoryAddr) {
+    constructor(address _factoryAddr, address _WETH) {
         factoryAddr = _factoryAddr;
+        WETH = _WETH;
+    }
+
+    receive() external payable {
+        assert(msg.sender == WETH); // only accept ETH via fallback from the WETH contract
     }
 
     modifier ensure(uint deadline) {
@@ -97,6 +104,7 @@ contract Router is IRouter {
             (address token0,) = DEXLibrary.sortTokens(input, output);
             uint amountOut = amounts[i + 1];
             (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
+
             address to = i < path.length - 2 ? DEXLibrary.pairFor(factoryAddr, output, path[i + 2]) : _to;
             ITradingPairExchange(DEXLibrary.pairFor(factoryAddr, input, output)).swap(
                 amount0Out,
@@ -117,6 +125,7 @@ contract Router is IRouter {
         uint deadline
     ) external ensure(deadline) returns (uint[] memory amounts) {         //the various amounts that will be swapped out
         amounts = DEXLibrary.getAmountsOut(factoryAddr, amountIn, path);  //from each exchange along the path
+
         require(amounts[amounts.length - 1] >= amountOutMin, 'DEX ROUTER: INSUFFICIENT_OUTPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, DEXLibrary.pairFor(factoryAddr, path[0], path[1]), amounts[0]
@@ -144,5 +153,38 @@ contract Router is IRouter {
         );
         _swap(amounts, path, to);
     }
+
+    function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline) 
+        external
+        payable
+        ensure(deadline) 
+        returns (uint[] memory amounts)
+    {
+        require(path[0] == WETH, 'DEXLibrary: INVALID_PATH');
+        amounts = DEXLibrary.getAmountsOut(factoryAddr, msg.value, path);
+        require(amounts[amounts.length - 1] >= amountOutMin, 'DEXLibrary: INSUFFICIENT_OUTPUT_AMOUNT');
+        IWETH(WETH).deposit{value: amounts[0]}();
+        assert(IWETH(WETH).transfer(DEXLibrary.pairFor(factoryAddr, path[0], path[1]), amounts[0]));
+        _swap(amounts, path, to);
+    }
+
+    function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
+        external
+        virtual
+        ensure(deadline)
+        returns (uint[] memory amounts)
+    {
+        require(path[path.length - 1] == WETH, 'DEXRouter: INVALID_PATH');
+        amounts = DEXLibrary.getAmountsIn(factoryAddr, amountOut, path);
+        require(amounts[0] <= amountInMax, 'DEXRouter: EXCESSIVE_INPUT_AMOUNT');
+        TransferHelper.safeTransferFrom(
+            path[0], msg.sender, DEXLibrary.pairFor(factoryAddr, path[0], path[1]), amounts[0]
+        );
+        _swap(amounts, path, address(this));
+        IWETH(WETH).withdraw(amounts[amounts.length - 1]);
+        TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]);
+    }
+
+
 
 }

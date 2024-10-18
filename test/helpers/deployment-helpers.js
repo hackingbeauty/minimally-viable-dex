@@ -22,28 +22,28 @@ async function deployERC20Contracts(config) {
         /* Mint tokens for Liquidity Provider's account */
         const tx1 = await tokenContract.mint(
             liquidityProvider.address,
-            ethers.utils.parseUnits('7000000000', 18)
+            ethers.utils.parseUnits('7000000000000', 18)
         );
         await tx1.wait();
         
         /* Mint tokens for Trader's account */
         const tx2 = await tokenContract.mint(
             trader.address,
-            ethers.utils.parseUnits('7000000000', 18)
+            ethers.utils.parseUnits('7000000000000', 18)
         );
         await tx2.wait();
     
         /* Liquidity Provider approves Router to transfer tokens */
         const tx3 = await tokenContract.connect(liquidityProvider).approve(
             router.address,
-            ethers.utils.parseUnits('7000000000', 18)
+            ethers.utils.parseUnits('7000000000000', 18)
         );
         await tx3.wait();
 
         /* Trader approves Router to transfer tokens */
         const tx4 = await tokenContract.connect(trader).approve(
             router.address,
-            ethers.utils.parseUnits('7000000000', 18)
+            ethers.utils.parseUnits('7000000000000', 18)
         );
         await tx4.wait();
 
@@ -55,7 +55,7 @@ async function deployERC20Contracts(config) {
         }   
     });
 
-    return await Promise.all(deployedERC20Contracts);
+    return sortTokenContracts(await Promise.all(deployedERC20Contracts));
 }
 
 async function deployExchanges(config) {
@@ -123,6 +123,13 @@ function getPath(deployedContracts) {
     return deployedContracts.map((contract) => {
         return contract.address;
     });
+}
+
+function sortTokenContracts(contracts) {
+    const sortedContracts = contracts.sort((a, b) => {
+        return a.address - b.address;
+    })
+    return sortedContracts;
 }
 
 module.exports = { 

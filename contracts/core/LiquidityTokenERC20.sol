@@ -12,7 +12,9 @@ contract LiquidityTokenERC20 is IERC20 {
     mapping(address => mapping(address => uint)) public allowance;
 
     function _mint(address to, uint value) internal {
-        totalSupply = totalSupply + value;
+        unchecked {
+            totalSupply = totalSupply + value;
+        }
         balanceOf[to] = balanceOf[to] + value;
         emit Transfer(address(0), to, value);
     }

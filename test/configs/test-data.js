@@ -2,7 +2,7 @@
 /* ERC20 token contracts constituting router "path" */
 const tokenContracts = [
     { 
-        name: "Aava token",
+        name: "Aave token",
         symbol: "AAVE"
     },
     { 
@@ -18,18 +18,18 @@ const tokenContracts = [
 /* Amounts to deposit into each Trading Pair's pool */
 const depositAmounts = [
     {   
-        tradingPair: "AAVE:DAI",
-        amountADesired: "284",
-        amountAMin: "184",
-        amountBDesired: "2",
-        amountBMin: "2"
+        tradingPair: "BAL:AAVE",
+        amountADesired: "28400",
+        amountAMin: "18400",
+        amountBDesired: "2000",
+        amountBMin: "2000"
     },
     {   
-        tradingPair: "DAI:BAL",
-        amountADesired: "2",
-        amountAMin: "2",
-        amountBDesired: "4",
-        amountBMin: "4"
+        tradingPair: "AAVE:DAI",
+        amountADesired: "20000",
+        amountAMin: "20000",
+        amountBDesired: "40000",
+        amountBMin: "40000"
     }
 ];
 
