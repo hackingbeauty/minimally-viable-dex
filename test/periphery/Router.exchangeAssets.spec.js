@@ -56,12 +56,14 @@ describe("Router contract", ()=> {
 
             /* Step 3 - Get array of token contracts to pass into Router */
             const path = getPath(deployedContracts); 
+            const pathWithWETH = [weth.address].concat(path); //path array with WETH as input
             const balToken = deployedContracts[0].contract;
             const aaveToken = deployedContracts[1].contract;
             const daiToken = deployedContracts[2].contract;
 
             return {
                 path,
+                pathWithWETH,
                 balToken,
                 aaveToken,
                 daiToken,
@@ -72,10 +74,11 @@ describe("Router contract", ()=> {
             }
         }
 
-        it.only("should swap an exact amount of input tokens in exchange for a minimum amount of output tokens", async() => {
+        it("should swap an exact amount of input tokens in exchange for a minimum amount of output tokens", async() => {
             // Arrange
             const { 
                 path,
+                pathWithWETH,
                 balToken,
                 aaveToken,
                 daiToken,
@@ -104,7 +107,7 @@ describe("Router contract", ()=> {
             expect(daiTokenBalanceAfterTrade).to.equal("7000000000020.187179575038471804"); // Trader receives 1.006685768646612797 BAL tokens after exchange
         });
 
-        it("should swap a maximum number of input tokens in exchange for an exact amount of output tokens", async() => {
+        it.only("should swap a maximum number of input tokens in exchange for an exact amount of output tokens", async() => {
             // Arrange
             const { 
                 path,
@@ -136,11 +139,10 @@ describe("Router contract", ()=> {
 
         it("should swap an exact amount of ETH in exchange for a minimum amount of a non-ETH output token", async() => {
             // swapExactETHForTokens
+            
             // Arrange
             const { 
-                path,
-                aaveToken,
-                daiToken,
+                pathWithWETH,
                 balToken,
                 trader,
                 router,
@@ -152,7 +154,7 @@ describe("Router contract", ()=> {
             // Act
             const swapTx = await router.swapExactETHForTokens(
                 amountOutMin, 
-                path,
+                pathWithWETH,
                 trader.address,
                 deadline
             );
