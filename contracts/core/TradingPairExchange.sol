@@ -176,6 +176,12 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
         uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
         uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
 
+        console.log('----------------------------------------------------------------');
+        console.log('----- amount0Out ----', amount0Out);
+        console.log('----- amount0In ----', amount0In);
+        console.log('----- amount1Out ----', amount1Out);
+        console.log('----- amount1In ----', amount1In);
+
         require(amount0In > 0 || amount1In > 0, 'DEX: INSUFFICIENT_INPUT_AMOUNT');
         { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
         uint balance0Adjusted = (balance0 * 1000) - (amount0In * 3);
@@ -183,11 +189,21 @@ contract TradingPairExchange is ITradingPairExchange, LiquidityTokenERC20 {
         uint updatedConstantProductK;
         uint previousConstantProductK;
 
+        console.log('----------------------------------------------------------------');
+        console.log('----- tokenA ----', tokenA);
+        console.log('---- balance0 ----', balance0);
+        console.log('---- _reserve0 ----', _reserve0);
+        console.log('----------------------------------------------------------------');
+        console.log('----- tokenB ----', tokenB);
+        console.log('---- balance1 ----', balance1);
+        console.log('---- _reserve1 ----', _reserve1);
+        console.log('----------------------------------------------------------------');
+
+
         unchecked {
             updatedConstantProductK = balance0Adjusted * balance1Adjusted;
             previousConstantProductK =(uint(_reserve0) * _reserve1) * (1000**2);
         }
-
 
         require(updatedConstantProductK >= previousConstantProductK, 'DEX: K');
         }

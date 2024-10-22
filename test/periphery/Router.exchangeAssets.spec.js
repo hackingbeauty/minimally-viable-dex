@@ -74,7 +74,7 @@ describe("Router contract", ()=> {
             }
         }
 
-        it("should swap an exact amount of input tokens in exchange for a minimum amount of output tokens", async() => {
+        it.only("should swap an exact amount of input tokens in exchange for a minimum amount of output tokens", async() => {
             // Arrange
             const { 
                 path,
@@ -119,13 +119,13 @@ describe("Router contract", ()=> {
                 deadline
             } = await loadFixture(deployRouterFixture);
 
-            const amountOut = ethers.utils.parseUnits('2', 18);
-            const amountInMax = ethers.utils.parseUnits('145', 18);
+            const amountInMaxBal = ethers.utils.parseUnits('145', 18); // maximum amount of BAL tokens trader is willing to trade
+            const amountOutDai = ethers.utils.parseUnits('2', 18); // exact amount of DAI tokens trader wants to receive
 
             // Act
             const swapTx = await router.swapTokensForExactTokens(
-                amountOut,
-                amountInMax,
+                amountOutDai,
+                amountInMaxBal,
                 path,
                 trader.address,
                 deadline
@@ -133,8 +133,8 @@ describe("Router contract", ()=> {
             await swapTx.wait();
 
             // Assert 
-            const balTokenBalanceAfterTrade = ethers.utils.formatUnits(await balToken.balanceOf(trader.address));
-            expect(balTokenBalanceAfterTrade).to.equal("888888888.999999999999");
+            const daiTokenBalanceAfterTrade = ethers.utils.formatUnits(await daiToken.balanceOf(trader.address));
+            expect(daiTokenBalanceAfterTrade).to.equal("7000000000002.0");
         });
 
         it("should swap an exact amount of ETH in exchange for a minimum amount of a non-ETH output token", async() => {

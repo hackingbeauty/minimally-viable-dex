@@ -142,7 +142,11 @@ contract Router is IRouter {
         address to,
         uint deadline
     ) external ensure(deadline) returns (uint[] memory amounts) {
+        console.log('---- amountOut ----', amountOut);
+        console.log('---- amountInMax ----', amountInMax);
         amounts = DEXLibrary.getAmountsIn(factoryAddr, amountOut, path);
+        console.log('---- amounts[0] ----', amounts[0]);
+
         require(amounts[0] <= amountInMax, 'DEXLibrary: EXCESSIVE_INPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
             path[0],
