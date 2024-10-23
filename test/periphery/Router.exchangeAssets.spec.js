@@ -44,7 +44,7 @@ describe("Router contract", ()=> {
             const currentTime = Math.floor(Date.now() / 1000); //divide by 1000 to get seconds
             const deadline = currentTime + (20 * 60); //deadline is current time + 20 minutes
             
-            /* Step 3 - Deploy Trading Pair Exchanges */
+            /* Step 3a - Deploy Trading Pair Exchanges */
             await deployExchanges({
                 factory,
                 deployedContracts,
@@ -53,6 +53,16 @@ describe("Router contract", ()=> {
                 liquidityProvider,
                 deadline
             });
+
+            /* Step 3b - Deploy WETH:BAL Exchange*/
+            // await deployExchange({
+            //     factory,
+            //     deployedContracts,
+            //     depositAmounts,
+            //     router,
+            //     liquidityProvider,
+            //     deadline
+            // });
 
             /* Step 3 - Get array of token contracts to pass into Router */
             const path = getPath(deployedContracts); 

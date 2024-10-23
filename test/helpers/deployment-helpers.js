@@ -78,45 +78,69 @@ async function deployExchanges(config) {
             tokenBSymbol = deployedContracts[index+1].symbol;
             tradingPair = `${tokenASymbol}:${tokenBSymbol}`;
 
-            const address = await factory.callStatic.createTradingPair(tokenA, tokenB); 
-
-            const depositAmount = depositAmounts.find((pair) => { 
-                return pair.tradingPair === tradingPair; 
-            });
-
-            const {
-                amountADesired,
-                amountBDesired,
-                amountAMin,
-                amountBMin
-            } = depositAmount;
-
-            const tx = await router.depositLiquidity(
+            return deployExchange({
                 tokenA,
                 tokenB,
-                ethers.utils.parseUnits(`${amountADesired}`, 18),
-                ethers.utils.parseUnits(`${amountBDesired}`, 18),
-                ethers.utils.parseUnits(`${amountAMin}`,     18),
-                ethers.utils.parseUnits(`${amountBMin}`,     18),
-                liquidityProvider.address,
-                deadline    
-            );
-            await tx.wait();
-        
-            return {
-                address,
                 tradingPair,
-                tokenA,
-                tokenB,
-                amountADesired,
-                amountBDesired,
-                amountAMin,
-                amountBMin
-            }
+                depositAmounts,
+                factory,
+                router,
+                liquidityProvider,
+                deadline
+            });
         }
     });
     
     return await Promise.all(deployedExchanges);
+}
+
+async function deployExchange(config) {
+    const { 
+        tokenA,
+        tokenB,
+        tradingPair,
+        depositAmounts,
+        factory,
+        router,
+        liquidityProvider,
+        deadline
+    } = config;
+
+    const address = await factory.callStatic.createTradingPair(tokenA, tokenB); 
+
+    const depositAmount = depositAmounts.find((pair) => { 
+        return pair.tradingPair === tradingPair; 
+    });
+
+    const {
+        amountADesired,
+        amountBDesired,
+        amountAMin,
+        amountBMin
+    } = depositAmount;
+
+    const tx = await router.depositLiquidity(
+        tokenA,
+        tokenB,
+        ethers.utils.parseUnits(`${amountADesired}`, 18),
+        ethers.utils.parseUnits(`${amountBDesired}`, 18),
+        ethers.utils.parseUnits(`${amountAMin}`,     18),
+        ethers.utils.parseUnits(`${amountBMin}`,     18),
+        liquidityProvider.address,
+        deadline    
+    );
+    await tx.wait();
+
+    return {
+        address,
+        tradingPair,
+        tokenA,
+        tokenB,
+        amountADesired,
+        amountBDesired,
+        amountAMin,
+        amountBMin
+    }
 }
 
 function getPath(deployedContracts) {
