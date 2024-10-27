@@ -20,7 +20,6 @@ interface IERC20 {
 }
 
 contract WETH is IERC20 {
-
     string public name = "Wrapped ETH";
     string public symbol = "WETH"; 
     uint8 public decimals = 18;

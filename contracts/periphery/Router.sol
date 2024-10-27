@@ -159,10 +159,15 @@ contract Router is IRouter {
         ensure(deadline) 
         returns (uint[] memory amounts)
     {
-        require(path[0] == WETH, 'DEXLibrary: INVALID_PATH');
+        require(path[0] == WETH, 'DEX: INVALID_PATH');
+        amounts = DEXLibrary.getAmountsOut(factoryAddr, msg.value, path);   
 
-        amounts = DEXLibrary.getAmountsOut(factoryAddr, msg.value, path);        
-        require(amounts[amounts.length - 1] >= amountOutMin, 'DEXLibrary: INSUFFICIENT_OUTPUT_AMOUNT');
+        console.log('--------------------------------------------');
+        console.log('---- amounts[amounts.length - 1] ----', amounts[amounts.length - 1]);
+        console.log('---- amountOutMin ----', amountOutMin);
+        console.log('--------------------------------------------');
+
+        require(amounts[amounts.length - 1] >= amountOutMin, 'DEX: INSUFFICIENT_OUTPUT_AMOUNT');
         IWETH(WETH).deposit{value: amounts[0]}();
         assert(IWETH(WETH).transfer(DEXLibrary.pairFor(factoryAddr, path[0], path[1]), amounts[0]));
         _swap(amounts, path, to);
