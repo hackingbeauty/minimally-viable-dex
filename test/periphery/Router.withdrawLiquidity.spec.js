@@ -20,8 +20,12 @@ describe("Router contract", ()=> {
             const factory = await FactoryContract.deploy(deployer.address);
             await factory.deployed();
 
+            const WrappedETHContract = await ethers.getContractFactory("WETH");
+            const wethContract = await WrappedETHContract.deploy(deployer.address);
+            await wethContract.deployed();
+
             const RouterContract = await ethers.getContractFactory("Router");
-            const deployedRouter = await RouterContract.deploy(factory.address);
+            const deployedRouter = await RouterContract.deploy(factory.address, wethContract.address);
             await deployedRouter.deployed();
     
             /* Connect router to signer */

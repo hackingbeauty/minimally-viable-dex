@@ -71,33 +71,33 @@ describe("Router contract", ()=> {
             const daiWethTradingPair = "DAI:WETH";
 
 
-        /* Mint tokens for Liquidity Provider's account */
-        const tx1 = await wethContract.mint(
-            liquidityProvider.address,
-            ethers.utils.parseUnits('7000000000000', 18)
-        );
-        await tx1.wait();
+            /* Mint tokens for Liquidity Provider's account */
+            const tx1 = await wethContract.mint(
+                liquidityProvider.address,
+                ethers.utils.parseUnits('7000000000000', 18)
+            );
+            await tx1.wait();
+            
+            /* Mint tokens for Trader's account */
+            const tx2 = await wethContract.mint(
+                trader.address,
+                ethers.utils.parseUnits('7000000000000', 18)
+            );
+            await tx2.wait();
         
-        /* Mint tokens for Trader's account */
-        const tx2 = await wethContract.mint(
-            trader.address,
-            ethers.utils.parseUnits('7000000000000', 18)
-        );
-        await tx2.wait();
-    
-        /* Liquidity Provider approves Router to transfer tokens */
-        const tx3 = await wethContract.connect(liquidityProvider).approve(
-            router.address,
-            ethers.utils.parseUnits('7000000000000', 18)
-        );
-        await tx3.wait();
+            /* Liquidity Provider approves Router to transfer tokens */
+            const tx3 = await wethContract.connect(liquidityProvider).approve(
+                router.address,
+                ethers.utils.parseUnits('7000000000000', 18)
+            );
+            await tx3.wait();
 
-        /* Trader approves Router to transfer tokens */
-        const tx4 = await wethContract.connect(trader).approve(
-            router.address,
-            ethers.utils.parseUnits('7000000000000', 18)
-        );
-        await tx4.wait();
+            /* Trader approves Router to transfer tokens */
+            const tx4 = await wethContract.connect(trader).approve(
+                router.address,
+                ethers.utils.parseUnits('7000000000000', 18)
+            );
+            await tx4.wait();
 
 
             /* Step 3b - Deploy WETH:BAL Exchange */
@@ -140,7 +140,7 @@ describe("Router contract", ()=> {
             }
         }
 
-        it.only("should swap an exact amount of input tokens in exchange for a minimum amount of output tokens", async() => {
+        it("should swap an exact amount of input tokens in exchange for a minimum amount of output tokens", async() => {
             // Arrange
             const { 
                 path,
@@ -169,7 +169,7 @@ describe("Router contract", ()=> {
             expect(daiTokenBalanceAfterTrade).to.equal("7000000000020.187179575038471804"); // Trader receives 1.006685768646612797 BAL tokens after exchange
         });
 
-        it.only("should swap a maximum number of input tokens in exchange for an exact amount of output tokens", async() => {
+        it("should swap a maximum number of input tokens in exchange for an exact amount of output tokens", async() => {
             // Arrange
             const { 
                 path,
@@ -226,7 +226,7 @@ describe("Router contract", ()=> {
             expect(balTokenBalanceAfterTrade).to.equal("888888888.999999999999");
         });
 
-        it.only("should swap a maximum amount of some non-ETH token in exchange for an exact amount of ETH", async() => {
+        it("should swap a maximum amount of some non-ETH token in exchange for an exact amount of ETH", async() => {
             // swapTokensForExactETH
             // Arrange
             const { 
