@@ -14,14 +14,17 @@ require('dotenv').config();
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: "0.8.17",
+  mocha: {
+    timeout: 100000000,
+  },
   networks: {
     hardhat: {
       chainId: 1337, // We set 1337 to make interacting with MetaMask simpler
       paths: {
         sources: "./test/mocks"
       },
-      allowUnlimitedContractSize: true 
-    }
+      allowUnlimitedContractSize: true ,
+    },
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS === "true" ? true : false,

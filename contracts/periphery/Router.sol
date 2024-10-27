@@ -123,9 +123,8 @@ contract Router is IRouter {
         address[] calldata path,
         address to,
         uint deadline
-    ) external ensure(deadline) returns (uint[] memory amounts) {         //the various amounts that will be swapped out
+    ) external ensure(deadline) returns (uint[] memory amounts) {         //the various amounts that will be swapped out        
         amounts = DEXLibrary.getAmountsOut(factoryAddr, amountIn, path);  //from each exchange along the path
-
         require(amounts[amounts.length - 1] >= amountOutMin, 'DEX ROUTER: INSUFFICIENT_OUTPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, DEXLibrary.pairFor(factoryAddr, path[0], path[1]), amounts[0]
@@ -161,7 +160,8 @@ contract Router is IRouter {
         returns (uint[] memory amounts)
     {
         require(path[0] == WETH, 'DEXLibrary: INVALID_PATH');
-        amounts = DEXLibrary.getAmountsOut(factoryAddr, msg.value, path);
+
+        amounts = DEXLibrary.getAmountsOut(factoryAddr, msg.value, path);        
         require(amounts[amounts.length - 1] >= amountOutMin, 'DEXLibrary: INSUFFICIENT_OUTPUT_AMOUNT');
         IWETH(WETH).deposit{value: amounts[0]}();
         assert(IWETH(WETH).transfer(DEXLibrary.pairFor(factoryAddr, path[0], path[1]), amounts[0]));
@@ -184,7 +184,4 @@ contract Router is IRouter {
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]);
     }
-
-
-
 }

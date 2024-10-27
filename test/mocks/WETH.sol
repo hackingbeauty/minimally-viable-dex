@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
-import 'hardhat/console.sol';
 
 interface IERC20 {
 
@@ -15,6 +14,9 @@ interface IERC20 {
 
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
+    event  Deposit(address indexed dst, uint wad);
+    event  Withdrawal(address indexed src, uint wad);
+
 }
 
 contract WETH is IERC20 {
@@ -34,6 +36,10 @@ contract WETH is IERC20 {
     ) {
         balances[msg.sender] = totalSupply_;
         deployer = _deployer;
+    }
+
+    receive() external payable {
+        deposit();
     }
 
     function totalSupply() public override view returns (uint256) {
@@ -78,4 +84,21 @@ contract WETH is IERC20 {
         totalSupply_ += amount;
         balances[account] += amount;
     }
+
+
+    function deposit() public payable {
+        balances[msg.sender] += msg.value;
+        emit Deposit(msg.sender, msg.value);
+    }
+
+    function withdraw(uint wad) public {
+        require(balances[msg.sender] >= wad);
+        balances[msg.sender] -= wad;
+
+        (bool callSuccess,) = payable(msg.sender).call{value: wad}("");               
+        require(callSuccess, "Failed to send Ether");
+        emit Withdrawal(msg.sender, wad);
+        emit Withdrawal(msg.sender, wad);
+    }
+
 }

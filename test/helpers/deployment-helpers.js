@@ -159,5 +159,6 @@ function sortTokenContracts(contracts) {
 module.exports = { 
     deployERC20Contracts,
     deployExchanges,
+    deployExchange,
     getPath
 }

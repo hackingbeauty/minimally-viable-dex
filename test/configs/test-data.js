@@ -30,6 +30,20 @@ const depositAmounts = [
         amountAMin: "20000",
         amountBDesired: "40000",
         amountBMin: "40000"
+    },
+    {   
+        tradingPair: "WETH:BAL",
+        amountADesired: "20000",
+        amountAMin: "20000",
+        amountBDesired: "40000",
+        amountBMin: "40000"
+    },
+    {   
+        tradingPair: "DAI:WETH",
+        amountADesired: "50000",
+        amountAMin: "40000",
+        amountBDesired: "5000000",
+        amountBMin: "5000000"
     }
 ];
 
