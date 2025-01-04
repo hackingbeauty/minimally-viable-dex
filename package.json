@@ -1,0 +1,28 @@
+{
+  "name": "hardhat-boilerplate-deluxe",
+  "version": "1.0.0",
+  "description": "A boilerplate to help you build secure & decentralized contracts for Etherem",
+  "scripts": {
+    "test": "hardhat test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hackingbeauty/hardhat-boilerplate-deluxe"
+  },
+  "author": "Mark-Joseph (Muskardin)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hackingbeauty/hardhat-boilerplate-deluxe"
+  },
+  "homepage": "https://github.com/hackingbeauty/hardhat-boilerplate-deluxe#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.8",
+    "@nomicfoundation/hardhat-verify": "^2.0.12",
+    "chai": "4.3.7",
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.4",
+    "hardhat": "^2.22.17",
+    "hardhat-gas-reporter": "^2.2.2",
+    "solidity-coverage": "^0.8.14"
+  }
+}
