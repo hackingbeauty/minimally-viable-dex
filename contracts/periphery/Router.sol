@@ -9,8 +9,8 @@ import './libraries/TransferHelper.sol';
 import './interfaces/IWETH.sol';
 
 contract Router is IRouter {
-    address public immutable override factoryAddr;
-    address public immutable override WETH;
+    address public immutable factoryAddr;
+    address public immutable WETH;
 
     constructor(address _factoryAddr, address _WETH) {
         factoryAddr = _factoryAddr;
