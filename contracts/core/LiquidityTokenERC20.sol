@@ -2,8 +2,11 @@
 pragma solidity=0.8.28;
 
 import './interfaces/IERC20.sol';
+import '../libraries/SafeMath.sol';
 
 contract LiquidityTokenERC20 is IERC20 {    
+    using SafeMath for uint;
+
     string public constant name = 'Minimally Viable Decentralized Exchange';
     string public constant symbol = 'MVDE';
     uint8 public constant decimals = 18;
@@ -12,10 +15,8 @@ contract LiquidityTokenERC20 is IERC20 {
     mapping(address => mapping(address => uint)) public allowance;
 
     function _mint(address to, uint value) internal {
-        unchecked {
-            totalSupply = totalSupply + value;
-        }
-        balanceOf[to] = balanceOf[to] + value;
+        totalSupply = totalSupply.add(value);
+        balanceOf[to] = balanceOf[to].add(value);
         emit Transfer(address(0), to, value);
     }
 
