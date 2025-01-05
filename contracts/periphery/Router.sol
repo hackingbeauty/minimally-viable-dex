@@ -132,27 +132,6 @@ contract Router is IRouter {
         _swap(amounts, path, to);
     }
 
-    // Pass in maximum amount of token As a Trader is willing to pay
-    // in exchange for an exact number of tokenBs (output tokens)
-    function swapTokensForExactTokens(
-        uint amountOut,
-        uint amountInMax,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external ensure(deadline) returns (uint[] memory amounts) {
-        amounts = DEXLibrary.getAmountsIn(factoryAddr, amountOut, path);
-        require(amounts[0] <= amountInMax, 'DEXLibrary: EXCESSIVE_INPUT_AMOUNT');
-        TransferHelper.safeTransferFrom(
-            path[0],
-            msg.sender,
-            DEXLibrary.pairFor(factoryAddr, path[0],
-            path[1]),
-            amounts[0]
-        );
-        _swap(amounts, path, to);
-    }
-
     function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline) 
         external
         payable
@@ -167,20 +146,4 @@ contract Router is IRouter {
         _swap(amounts, path, to);
     }
 
-    function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
-        external
-        virtual
-        ensure(deadline)
-        returns (uint[] memory amounts)
-    {
-        require(path[path.length - 1] == WETH, 'DEXRouter: INVALID_PATH');
-        amounts = DEXLibrary.getAmountsIn(factoryAddr, amountOut, path);
-        require(amounts[0] <= amountInMax, 'DEXRouter: EXCESSIVE_INPUT_AMOUNT');
-        TransferHelper.safeTransferFrom(
-            path[0], msg.sender, DEXLibrary.pairFor(factoryAddr, path[0], path[1]), amounts[0]
-        );
-        _swap(amounts, path, address(this));
-        IWETH(WETH).withdraw(amounts[amounts.length - 1]);
-        TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]);
-    }
 }
