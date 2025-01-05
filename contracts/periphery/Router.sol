@@ -7,6 +7,7 @@ import '../core/interfaces/ITradingPair.sol';
 import './libraries/DEXLibrary.sol';
 import './libraries/TransferHelper.sol';
 import './interfaces/IWETH.sol';
+import '../libraries/SafeMath.sol';
 
 contract Router is IRouter {
     using SafeMath for uint;
