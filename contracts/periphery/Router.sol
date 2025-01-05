@@ -9,11 +9,11 @@ import './libraries/TransferHelper.sol';
 import './interfaces/IWETH.sol';
 
 contract Router is IRouter {
-    address public immutable factoryAddr;
+    address public immutable factory;
     address public immutable WETH;
 
-    constructor(address _factoryAddr, address _WETH) {
-        factoryAddr = _factoryAddr;
+    constructor(address _factory, address _WETH) {
+        factory = _factory;
         WETH = _WETH;
     }
 
@@ -48,6 +48,17 @@ contract Router is IRouter {
         uint deadline
     ) external ensure(deadline) returns(uint amountA, uint amountB, uint liquidity){
         // Add code for depositing liquidity here..
+    }
+
+    function depositLiquidityETH(
+        address token,
+        uint amountTokenDesired,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline
+    ) external virtual payable ensure(deadline) returns (uint amountToken, uint amountETH, uint liquidity) {
+        // Add code for depositing liquidity (where ETH is one token in the pair) here..
     }
 
     function withdrawLiquidity(
