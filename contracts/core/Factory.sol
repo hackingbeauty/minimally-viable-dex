@@ -13,25 +13,13 @@ contract Factory is IFactory {
     address[] public allTradingPairs;
 
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
-    
+
     constructor(address _feeToSetter) {
         feeToSetter = _feeToSetter;
     }
 
     function createTradingPair(address tokenA, address tokenB) external returns (address pair) {
-        require(tokenA != tokenB, 'FACTORY: IDENTICAL_ADDRESSES');
-        (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        require(token0 != address(0), 'FACTORY: ZERO_ADDRESS');
-        require(getTradingPair[token0][token1] == address(0), 'FACTORY: PAIR_EXISTS');
-
-        bytes32 salt = keccak256(abi.encode(token0, token1));
-        TradingPair tpe = new TradingPair{salt: salt}();
-        pair = address(tpe);
-        ITradingPair(pair).initialize(tokenA, tokenB);
-        getTradingPair[tokenA][tokenB] = pair;
-        getTradingPair[tokenB][tokenA] = pair;
-        allTradingPairs.push(pair);
-        emit PairCreated(token0, token1, pair, allTradingPairs.length);
+        // Code for deploying Trading Pair goes here
     }
 
     function setFeeTo(address _feeTo) external {

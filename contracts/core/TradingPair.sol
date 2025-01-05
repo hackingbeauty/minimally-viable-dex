@@ -16,8 +16,8 @@ contract TradingPair is ITradingPair, LiquidityTokenERC20 {
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
 
     address public factoryAddr;
-    address public tokenA;
-    address public tokenB;
+    address public token0;
+    address public token1;
 
     uint112 private reserve0;
     uint112 private reserve1;
@@ -47,10 +47,10 @@ contract TradingPair is ITradingPair, LiquidityTokenERC20 {
         factoryAddr = msg.sender;
     }
 
-    function initialize(address _tokenA, address _tokenB) external {
+    function initialize(address _token0, address _token1) external {
         require(msg.sender == factoryAddr, 'DEX: FORBIDDEN');
-        tokenA = _tokenA;
-        tokenB = _tokenB;
+        token0 = _token0;
+        token1 = _token1;
     }
 
     function getReserves() public view returns (uint112 _reserve0, uint112 _reserve1) {
@@ -96,37 +96,32 @@ contract TradingPair is ITradingPair, LiquidityTokenERC20 {
     }
 
     function mint(address to) external lock returns (uint liquidity) {
-        (uint112 _reserve0, uint112 _reserve1) = getReserves();
-        uint balance0 = IERC20(tokenA).balanceOf(address(this));
-        uint balance1 = IERC20(tokenB).balanceOf(address(this));
-        uint amount0 = balance0 - _reserve0;
-        uint amount1 = balance1 - _reserve1;
+        (uint112 _reserve0, uint112 _reserve1) = getReserves(); // gas savings
+        uint balance0 = IERC20(token0).balanceOf(address(this));
+        uint balance1 = IERC20(token1).balanceOf(address(this));
+        uint amount0 = balance0.sub(_reserve0);
+        uint amount1 = balance1.sub(_reserve1);
 
         bool feeOn = _mintFee(_reserve0, _reserve1);
-
-        uint _totalSupply = totalSupply; //gas savings
-        if(_totalSupply == 0) {
-            unchecked {
-                liquidity = Math.sqrt(amount0 * amount1) - (MINIMUM_LIQUIDITY);
-            }
-            _mint(address(0), MINIMUM_LIQUIDITY);
+        uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
+        if (_totalSupply == 0) {
+            liquidity = Math.sqrt(amount0.mul(amount1)).sub(MINIMUM_LIQUIDITY);
+           _mint(address(0), MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
         } else {
-            liquidity = Math.min((amount0 * _totalSupply) / reserve0, (amount1 * _totalSupply) / reserve1);
+            liquidity = Math.min(amount0.mul(_totalSupply) / _reserve0, amount1.mul(_totalSupply) / _reserve1);
         }
-        require(liquidity > 0, 'DEX: INSUFFICIENT_LIQUIDITY_MINTED');
-
+        require(liquidity > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED');
         _mint(to, liquidity);
+
         _update(balance0, balance1);
-
-        if(feeOn) { kLast = Math.mul(_reserve0,_reserve1); } // _reserve0 and _reserve1 are up-to-date
-
+        if (feeOn) kLast = uint(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
         emit Mint(msg.sender, amount0, amount1);
     }
 
     function burn(address to) external lock returns (uint amountASent, uint amountBSent) {
         (uint112 _reserve0, uint112 _reserve1) = getReserves();
-        address _token0 = tokenA;
-        address _token1 = tokenB;
+        address _token0 = token0;
+        address _token1 = token1;
         uint balance0 = IERC20(_token0).balanceOf(address(this));
         uint balance1 = IERC20(_token1).balanceOf(address(this));
         uint liquidity = balanceOf[address(this)];
@@ -158,8 +153,8 @@ contract TradingPair is ITradingPair, LiquidityTokenERC20 {
         uint balance0;
         uint balance1;
         { // scope for _token{0,1}, avoids stack too deep errors
-        address _token0 = tokenA;
-        address _token1 = tokenB;
+        address _token0 = token0;
+        address _token1 = token1;
         require(to != _token0 && to != _token1, 'DEX: INVALID_TO');
         if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
         if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
