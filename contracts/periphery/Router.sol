@@ -38,7 +38,6 @@ contract Router is IRouter {
             IFactory(factoryAddr).createTradingPair(tokenA, tokenB);
         }
         (uint reserveA, uint reserveB) = DEXLibrary.getReserves(factoryAddr, tokenA, tokenB);
-
         if(reserveA == 0 && reserveB == 0) {
             (amountA, amountB) = (amountADesired, amountBDesired);
         } else {

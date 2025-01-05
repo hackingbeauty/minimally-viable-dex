@@ -13,12 +13,10 @@ contract Factory is IFactory {
     address[] public allTradingPairs;
 
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
-
-
+    
     constructor(address _feeToSetter) {
         feeToSetter = _feeToSetter;
     }
-
 
     function createTradingPair(address tokenA, address tokenB) external returns (address pair) {
         require(tokenA != tokenB, 'FACTORY: IDENTICAL_ADDRESSES');
